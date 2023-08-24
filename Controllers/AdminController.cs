@@ -58,25 +58,37 @@ namespace TechnorucsWalkInAPI.Controllers
                             tokenModel.Name = item["Title"].ToString();
                             tokenModel.Role = "Admin";
                             var Token = GenerateToken(tokenModel);
-                            return new
+                            bool hasAccess = Boolean.Parse(item["IsApproved"].ToString());
+                            if (hasAccess)
                             {
-                                status = "Login success",
-                                id = item["ID"].ToString(),
-                                Name = item["Title"].ToString(),
-                                Email = item["Email"].ToString(),
-                                IsApproved = item["IsApproved"].ToString(),
-                                IsDeleted = item["IsDeleted"].ToString(),
-                                token=Token
-                            };
+                                return Ok(new
+                                {
+                                    status = "Login success",
+                                    id = item["ID"].ToString(),
+                                    Name = item["Title"].ToString(),
+                                    Email = item["Email"].ToString(),
+                                    IsApproved = item["IsApproved"].ToString(),
+                                    IsDeleted = item["IsDeleted"].ToString(),
+                                    token = Token
+                                });
+                            }
+                            else
+                            {
+                                return BadRequest(new
+                                {
+                                    status = "You don't have access",
+                                });
+                            }
+                           
                         }
                         else
                         {
-                            return "Invalid Password";
+                            return BadRequest("Invalid Password");
                         }
                     }
                     else
                     {
-                        return "User not found";
+                        return BadRequest( "User not found");
                     }
                 }
             }
