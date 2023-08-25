@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.SharePoint.Client;
 using PnP.Framework.Provisioning.Model;
+using TechnorucsWalkInAPI.Helpers;
 
 namespace TechnorucsWalkInAPI
 {
@@ -46,6 +47,8 @@ namespace TechnorucsWalkInAPI
             });
 
             services.AddTransient<ClientContext>(_ => new PnP.Framework.AuthenticationManager().GetACSAppOnlyContext(configRoot["siteurl"], configRoot["appId"], configRoot["appSecret"]));
+
+            services.AddScoped<JwtBearer>();
 
 
             services.AddEndpointsApiExplorer();

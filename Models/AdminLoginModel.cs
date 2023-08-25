@@ -15,7 +15,7 @@
 
     }
 
-    public class AdminTokenModel
+    public class TokenModel
     {
         public string Name { get; set; }
         public string Email { get; set; }
