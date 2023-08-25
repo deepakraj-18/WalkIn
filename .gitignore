@@ -480,18 +480,21 @@ $RECYCLE.BIN/
 /Properties
 
 
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.assets.cache
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.GeneratedMSBuildEditorConfig.editorconfig
-#/.vs/TechnorucsWalkInAPI/v17/.suo
-#/obj/project.assets.json
-#/obj/project.nuget.cache
-#/obj/TechnorucsWalkInAPI.csproj.nuget.dgspec.json
-#/Properties/PublishProfiles/FolderProfile.pubxml.user
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.csproj.AssemblyReference.cache
-#/bin/Debug/net7.0/TechnorucsWalkInAPI.dll
-#/.vs/TechnorucsWalkInAPI/DesignTimeBuild/.dtbcache.v2
-#/bin/Debug/net7.0/TechnorucsWalkInAPI.pdb
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.csproj.FileListAbsolute.txt
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.dll
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.genruntimeconfig.cache
-#/obj/Debug/net7.0/TechnorucsWalkInAPI.pdb
+/obj/Debug/net7.0/TechnorucsWalkInAPI.assets.cache
+/obj/Debug/net7.0/TechnorucsWalkInAPI.GeneratedMSBuildEditorConfig.editorconfig
+/.vs/TechnorucsWalkInAPI/v17/.suo
+/obj/project.assets.json
+/obj/project.nuget.cache
+/obj/TechnorucsWalkInAPI.csproj.nuget.dgspec.json
+/Properties/PublishProfiles/FolderProfile.pubxml.user
+/obj/Debug/net7.0/TechnorucsWalkInAPI.csproj.AssemblyReference.cache
+/bin/Debug/net7.0/TechnorucsWalkInAPI.dll
+/.vs/TechnorucsWalkInAPI/DesignTimeBuild/.dtbcache.v2
+/bin/Debug/net7.0/TechnorucsWalkInAPI.pdb
+/obj/Debug/net7.0/TechnorucsWalkInAPI.csproj.FileListAbsolute.txt
+/obj/Debug/net7.0/TechnorucsWalkInAPI.dll
+/obj/Debug/net7.0/TechnorucsWalkInAPI.genruntimeconfig.cache
+/obj/Debug/net7.0/TechnorucsWalkInAPI.pdb
+/obj/Debug/net7.0/ref/TechnorucsWalkInAPI.dll
+/obj/Debug/net7.0/refint/TechnorucsWalkInAPI.dll
+/obj/Debug/net7.0/TechnorucsWalkInAPI.csproj.CoreCompileInputs.cache
