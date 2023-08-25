@@ -16,7 +16,7 @@ namespace TechnorucsWalkInAPI.Helpers
         }
 
         #region Generate JWT token
-        public string GenerateToken(AdminTokenModel model)
+        public string GenerateToken(TokenModel model)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
