@@ -475,3 +475,10 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+/obj/Debug/net7.0/TechnorucsWalkInAPI.assets.cache
+/obj/Debug/net7.0/TechnorucsWalkInAPI.GeneratedMSBuildEditorConfig.editorconfig
+/.vs/TechnorucsWalkInAPI/v17/.suo
+/obj/project.assets.json
+/obj/project.nuget.cache
+/obj/TechnorucsWalkInAPI.csproj.nuget.dgspec.json
+/Properties/PublishProfiles/FolderProfile.pubxml.user
