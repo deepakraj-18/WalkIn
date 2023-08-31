@@ -28,6 +28,16 @@ namespace TechnorucsWalkInAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
 
             services.AddAuthentication(x =>
             {
@@ -48,7 +58,9 @@ namespace TechnorucsWalkInAPI
 
             services.AddTransient<ClientContext>(_ => new PnP.Framework.AuthenticationManager().GetACSAppOnlyContext(configRoot["siteurl"], configRoot["appId"], configRoot["appSecret"]));
 
-            services.AddScoped<JwtBearer>();
+            services.AddTransient<SharePointService>();
+            services.AddTransient<JwtBearer>();
+            services.AddSingleton<Utilites>();
 
 
             services.AddEndpointsApiExplorer();
@@ -69,6 +81,7 @@ namespace TechnorucsWalkInAPI
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
             app.UseHttpsRedirection();
+            app.UseCors("AllowAllOrigins");
 
             app.UseAuthentication();
             app.UseAuthorization();
