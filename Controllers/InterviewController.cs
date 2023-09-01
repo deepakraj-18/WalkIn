@@ -10,7 +10,7 @@ namespace TechnorucsWalkInAPI.Controllers
     [AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
-    public class InterviewController : Controller
+    public class InterviewController : ControllerBase
     {
         private readonly SharePointService _sharePointService;
 
@@ -38,7 +38,7 @@ namespace TechnorucsWalkInAPI.Controllers
         /// </returns>
         [HttpGet]
         [Route("GetAllInterviews")]
-        public dynamic GetAllInterviews()
+        public dynamic GetInterviews()
         {
             ListItemCollection interviews = _sharePointService.GetAllInterviews();
             return interviews;

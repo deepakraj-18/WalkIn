@@ -55,5 +55,26 @@ namespace TechnorucsWalkInAPI.Controllers
         }
         #endregion
 
+
+        #region Canditate Registration
+        [HttpPost]
+        [Route("Canditate")]
+        public dynamic Canditate([FromBody]CanditateRegistrationModel model)
+        {
+            var canditate=_sharePointService.RegisterCanditate(model);
+            return Ok(canditate);
+        }
+        #endregion
+
+        #region
+        [HttpPost]
+        [Route("GetCanditates")]
+        public dynamic GetCanditates()
+        {
+            var canditateList=_sharePointService.GetAllCanditates();
+            return Ok(canditateList);
+        }
+        #endregion
+
     }
 }

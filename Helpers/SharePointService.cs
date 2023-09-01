@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.SharePoint.Tools;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.News.DataModel;
+using System.Linq;
 using TechnorucsWalkInAPI.Models;
 
 namespace TechnorucsWalkInAPI.Helpers
@@ -11,12 +12,16 @@ namespace TechnorucsWalkInAPI.Helpers
         private readonly ClientContext _clientContext;
         private readonly string _adminList;
         private readonly string _interviewList;
+        private readonly string _canditateList;
         public SharePointService(ClientContext clientContext, IConfiguration configuration)
         {
             _configuration = configuration;
             _clientContext = clientContext;
             _adminList = configuration["adminList"];
             _interviewList = configuration["interviewList"];
+            _canditateList = configuration["canditateList"];
+
+
         }
         public ListItemCollection FetchUsers()
         {
@@ -75,7 +80,7 @@ namespace TechnorucsWalkInAPI.Helpers
         {
 
             List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
-            ListItem listItem = targetList.GetItemById(model.id);            
+            ListItem listItem = targetList.GetItemById(model.id);
             listItem["IsApproved"] = model.isApproved;
             listItem.Update();
             _clientContext.ExecuteQuery();
@@ -123,6 +128,7 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return new AdminModel
             {
+                Id = listItem["ID"].ToString(),
                 Name = listItem["Title"].ToString(),
                 Email = listItem["Email"].ToString(),
                 IsDeleted = bool.Parse(listItem["IsDeleted"].ToString
@@ -149,7 +155,7 @@ namespace TechnorucsWalkInAPI.Helpers
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
             ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
             ListItem listItem = list.AddItem(listItemCreationInformation);
-            //var interviewCount = GetAllInterviews().Count().ToString();
+            var interviewCount = GetAllInterviews().Count().ToString();
             //listItem["ID"] = "INV"+ interviewCount;
             listItem["Title"] = interview.Date;
             listItem["ScoreOne"] = interview.Scoreone;
@@ -159,5 +165,55 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return listItem;
         }
+
+
+        public ListItem RegisterCanditate(CanditateRegistrationModel canditate)
+        {
+            List list = _clientContext.Web.Lists.GetByTitle(_canditateList);
+            ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
+            ListItem listItem = list.AddItem(listItemCreationInformation);
+            listItem["Title"] = canditate.Name;
+            listItem["Email"] = canditate.Email;
+            listItem["PhoneNumber"] = canditate.PhoneNumber;
+            listItem["City"] = canditate.City;
+            listItem["Institute"] = canditate.Institute;
+            listItem["Technology"] = canditate.Technology;
+            listItem["Experience"] = canditate.Experience;
+            listItem["Certification"] = canditate.Certification;
+            listItem["Skills"] = canditate.Skills;
+            listItem["Source"] = canditate.Source;
+            listItem["OthersReference"] = canditate.Reference;
+            listItem["Degree"] = canditate.Degree;
+            listItem["Gender"] = canditate.Gender;
+            listItem.Update();
+            _clientContext.ExecuteQuery();
+            return listItem;
+        }
+        public ListItemCollection GetAllCanditates()
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_canditateList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = "<View/>";
+            ListItemCollection list = targetList.GetItems(query);
+            _clientContext.Load(list);
+            _clientContext.ExecuteQuery();
+            return list;
+        }
+
+
+
+        #region //Question Section
+
+
+        #region //Add Question
+        public dynamic AddQuestion()
+        {
+
+            return null;
+        }
+        #endregion
+
+
+        #endregion
     }
 }

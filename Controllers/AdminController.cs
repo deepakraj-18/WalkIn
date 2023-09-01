@@ -105,12 +105,25 @@ namespace TechnorucsWalkInAPI.Controllers
         [AllowAnonymous]
         [HttpGet]
         [Route("GetAllAdmin")]
-        public dynamic GetAllAdmin() {
+        public dynamic GetAllAdmin()
+        {
             try
             {
                 ListItemCollection admins = _sharePointService.FetchUsers();
-                ListItem[] adminArray = admins.Cast<ListItem>().ToArray();
-                return adminArray;
+                if (admins == null)
+                {
+                    return BadRequest("Please add a Admin");
+                }
+                List<AdminModel> adminList = admins.Select(item => new AdminModel
+                {
+                    Id = item.Id.ToString(),
+                    Name = item["Title"].ToString(),
+                    Email = item["Email"].ToString(),
+                    IsApproved = Boolean.Parse(item["IsApproved"].ToString()),
+                    IsDeleted = Boolean.Parse(item["IsDeleted"].ToString())
+
+                }).ToList();
+                return adminList;
             }
             catch (Exception ex)
             {
