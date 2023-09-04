@@ -12,18 +12,10 @@ namespace TechnorucsWalkInAPI.Controllers
     [Route("api/[controller]")]
     public class LoginController : Controller
     {
-        private readonly IConfiguration _configuration;
-        private readonly ClientContext _clientContext;
         private readonly SharePointService _sharePointService;
-        private readonly string _adminList;
-        private readonly JwtBearer _jwtBearer;
         private readonly Utilites _utilites;
-        public LoginController(IConfiguration configuration, ClientContext clientContext, JwtBearer jwtBearer, SharePointService sharePointService, Utilites utilites)
+        public LoginController( SharePointService sharePointService, Utilites utilites)
         {
-            _configuration = configuration;
-            _clientContext = clientContext;
-            _adminList = configuration["adminList"];
-            _jwtBearer = jwtBearer;
             _sharePointService = sharePointService;
             _utilites = utilites;
         }
@@ -63,7 +55,7 @@ namespace TechnorucsWalkInAPI.Controllers
                             Email = user["Email"].ToString(),
                             IsApproved = user["IsApproved"].ToString(),
                             IsDeleted = user["IsDeleted"].ToString(),
-                            token = token
+                            Token=token
                         });
                     }
                     else 

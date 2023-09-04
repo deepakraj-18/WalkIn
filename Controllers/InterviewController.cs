@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.News.DataModel;
 using TechnorucsWalkInAPI.Helpers;
 using TechnorucsWalkInAPI.Models;
 
@@ -14,19 +15,11 @@ namespace TechnorucsWalkInAPI.Controllers
     {
         private readonly SharePointService _sharePointService;
 
-        public InterviewController( SharePointService sharePointService)
+        public InterviewController(SharePointService sharePointService)
         {
             _sharePointService = sharePointService;
 
         }
-
-
-        #region Demo
-        [HttpGet]
-       public string Get() { 
-            return "Hi";
-        }
-        #endregion
 
 
         #region //Get All Interviews
@@ -41,7 +34,19 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic GetInterviews()
         {
             ListItemCollection interviews = _sharePointService.GetAllInterviews();
-            return interviews;
+            if (interviews == null)
+            {
+                return BadRequest("Please add a interview");
+            }
+            List<InterViewRegistrationModel> interviewList = interviews.Select(x => new InterViewRegistrationModel
+            {
+                ID = x["ID"].ToString(),
+                Date = DateOnly.Parse(x["Title"].ToString()),
+                Scoreone = x["ScoreOne"].ToString(),
+                Scoretwo = x["ScoreTwo"].ToString()
+
+            }).ToList();
+            return interviewList;
         }
         #endregion
 
@@ -50,10 +55,51 @@ namespace TechnorucsWalkInAPI.Controllers
         #region // Create a interview
         [HttpPost]
         [Route("CreateInterview")]
-        public ListItem GetInterviews([FromBody] InterViewRegistrationModel model)
+        public dynamic CreateInterview([FromBody] InterViewRegistrationModel model)
         {
-            ListItem interview = _sharePointService.CreateInterview(model);
-            return interview;
+            ListItem interviewItems = _sharePointService.CreateInterview(model);
+
+            List<InterViewRegistrationModel> interviews = new()
+            {
+    new InterViewRegistrationModel
+    {
+        ID = interviewItems["InterviewId"].ToString(),
+        Date = DateOnly.Parse(interviewItems["Title"].ToString()),
+        Scoreone = interviewItems["ScoreOne"].ToString(),
+        Scoretwo = interviewItems["ScoreTwo"].ToString()
+    },
+};
+            return interviews;
+        }
+        #endregion
+
+
+
+
+        #region //Update Interview
+        [HttpPost(Name = "Edit")]
+        public List<InterViewUpdateModel> EditInterview([FromBody] InterViewUpdateModel model)
+        {
+            ListItem editedInterview = _sharePointService.EditInterview(model);
+            List<InterViewUpdateModel> response = new()
+            {
+    new InterViewUpdateModel
+    {
+        Date = DateOnly.Parse(editedInterview["Title"].ToString()),
+        Scoreone = editedInterview["ScoreOne"].ToString(),
+        Scoretwo = editedInterview["ScoreTwo"].ToString()
+    },
+};
+            return response;
+        }
+        #endregion
+
+
+        #region//Delete Interview
+        [HttpPost(Name ="Delete")]
+        public string DeleteInteview()
+        {
+            return null;
         }
         #endregion
 

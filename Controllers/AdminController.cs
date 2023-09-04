@@ -20,18 +20,10 @@ namespace TechnorucsWalkInAPI.Controllers
     [Route("api/[controller]")]
     public class AdminController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly ClientContext _clientContext;
-        private readonly string _adminList;
-        private readonly JwtBearer _jwtBearer;
         private readonly SharePointService _sharePointService;
 
-        public AdminController(IConfiguration configuration, ClientContext clientContext, JwtBearer jwtBearer, SharePointService sharePointService)
+        public AdminController(SharePointService sharePointService)
         {
-            _configuration = configuration;
-            _clientContext = clientContext;
-            _adminList = configuration["adminList"];
-            _jwtBearer = jwtBearer;
             _sharePointService = sharePointService;
         }
 
@@ -112,16 +104,17 @@ namespace TechnorucsWalkInAPI.Controllers
                 ListItemCollection admins = _sharePointService.FetchUsers();
                 if (admins == null)
                 {
-                    return BadRequest("Please add a Admin");
+
+                    return new List<AdminModel>();
                 }
+
                 List<AdminModel> adminList = admins.Select(item => new AdminModel
                 {
-                    Id = item.Id.ToString(),
+                    Id = item["ID"].ToString(),
                     Name = item["Title"].ToString(),
                     Email = item["Email"].ToString(),
                     IsApproved = Boolean.Parse(item["IsApproved"].ToString()),
                     IsDeleted = Boolean.Parse(item["IsDeleted"].ToString())
-
                 }).ToList();
                 return adminList;
             }

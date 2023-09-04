@@ -8,26 +8,23 @@ namespace TechnorucsWalkInAPI.Helpers
 {
     public class SharePointService
     {
-        private readonly IConfiguration _configuration;
         private readonly ClientContext _clientContext;
         private readonly string _adminList;
         private readonly string _interviewList;
         private readonly string _canditateList;
-        public SharePointService(ClientContext clientContext, IConfiguration configuration)
+        public SharePointService(ClientContext clientContext)
         {
-            _configuration = configuration;
             _clientContext = clientContext;
-            _adminList = configuration["adminList"];
-            _interviewList = configuration["interviewList"];
-            _canditateList = configuration["canditateList"];
 
 
         }
         public ListItemCollection FetchUsers()
         {
             List userList = _clientContext.Web.Lists.GetByTitle(_adminList);
-            CamlQuery query = new CamlQuery();
-            query.ViewXml = $@"<View/>";
+            CamlQuery query = new()
+            {
+                ViewXml = $@"<View/>"
+            };
             ListItemCollection items = userList.GetItems(query);
             _clientContext.Load(items);
             _clientContext.ExecuteQuery();
@@ -37,8 +34,10 @@ namespace TechnorucsWalkInAPI.Helpers
         public ListItemCollection GetUserbyMail(string email)
         {
             List userList = _clientContext.Web.Lists.GetByTitle(_adminList);
-            CamlQuery query = new CamlQuery();
-            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Email' /><Value Type='Text'>{email}</Value></Eq></Where></Query></View>";
+            CamlQuery query = new CamlQuery
+            {
+                ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Email' /><Value Type='Text'>{email}</Value></Eq></Where></Query></View>"
+            };
             ListItemCollection user = userList.GetItems(query);
             _clientContext.Load(user);
             _clientContext.ExecuteQuery();
@@ -144,23 +143,47 @@ namespace TechnorucsWalkInAPI.Helpers
         {
             List interviewList = _clientContext.Web.Lists.GetByTitle("interviewList");
             CamlQuery query = new CamlQuery();
-            query.ViewXml = "<View/>";
+            query.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></Where></Query></View>";
             ListItemCollection Lists = interviewList.GetItems(query);
             _clientContext.Load(Lists);
             _clientContext.ExecuteQuery();
             return Lists;
         }
-        public ListItem CreateInterview(InterViewRegistrationModel interview)
+        public ListItem  CreateInterview(InterViewRegistrationModel interview)
         {
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
             ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
             ListItem listItem = list.AddItem(listItemCreationInformation);
-            var interviewCount = GetAllInterviews().Count().ToString();
-            //listItem["ID"] = "INV"+ interviewCount;
+            int interviewCount = GetAllInterviews().Count() + 1;
+            string interviewId = "INV" + interviewCount.ToString("D4");
+            listItem["InterviewId"] = interviewId;
             listItem["Title"] = interview.Date;
             listItem["ScoreOne"] = interview.Scoreone;
             listItem["ScoreTwo"] = interview.Scoretwo;
             listItem["IsDeleted"] = false;
+            listItem.Update();
+            _clientContext.ExecuteQuery();
+            return listItem;
+        }
+
+        public ListItem EditInterview(InterViewUpdateModel interview)
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
+            ListItem listItem = targetList.GetItemById(interview.ID);
+            listItem["Title"] = interview.Date;
+            listItem["ScoreOne"] = interview.Scoreone;
+            listItem["ScoreTwo"] = interview.Scoretwo;
+            listItem["IsDeleted"] = interview.isDeleted;
+            listItem.Update();
+            _clientContext.ExecuteQuery();
+            return listItem;
+        }
+
+        public ListItem DeleteInterview(InterViewDeleteModel deletemodel)
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
+            ListItem listItem = targetList.GetItemById(deletemodel.ID);
+            listItem["IsDeleted"] = true;
             listItem.Update();
             _clientContext.ExecuteQuery();
             return listItem;
