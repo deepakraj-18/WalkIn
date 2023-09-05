@@ -34,28 +34,32 @@ namespace TechnorucsWalkInAPI.Controllers
         public ActionResult GetInterviews()
         {
             ListItemCollection interviews = _sharePointService.GetAllInterviews();
-            if (interviews.Count == 0 && interviews == null)
+            if (interviews == null || interviews.Count == 0)
             {
-                return BadRequest("Please add a interview");
+                return BadRequest("No interviews found.");
             }
-            List<InterViewRegistrationModel> interviewList = new();
+
+            List<InterViewRegistrationModel> interviewList = new List<InterViewRegistrationModel>();
             foreach (var x in interviews)
             {
+                // Make sure to check for null values in each field before accessing them
+                string id = x["ID"] != null ? x["ID"].ToString() : "";
+                string title = x["Title"] != null ? x["Title"].ToString() : "";
+                string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
+                string scoreTwo = x["ScoreTwo"] != null ? x["ScoreTwo"].ToString() : "";
+
                 interviewList.Add(new InterViewRegistrationModel()
                 {
-                    ID = x["ID"].ToString(),
-                    Date = DateOnly.Parse(x["Title"].ToString()),
-                    Scoreone = x["ScoreOne"].ToString(),
-                    Scoretwo = x["ScoreTwo"].ToString()
-
+                    ID = id,
+                    Date = !string.IsNullOrEmpty(title) ? DateOnly.Parse(title) : default,
+                    Scoreone = scoreOne,
+                    Scoretwo = scoreTwo
                 });
             }
-            if(interviewList.Count > 0)
-            {
-                return BadRequest("Please add a interview");
-            }
+
             return Ok(interviewList);
         }
+
         #endregion
 
 
