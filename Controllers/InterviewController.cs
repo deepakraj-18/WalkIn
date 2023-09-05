@@ -31,22 +31,30 @@ namespace TechnorucsWalkInAPI.Controllers
         /// </returns>
         [HttpGet]
         [Route("GetAllInterviews")]
-        public dynamic GetInterviews()
+        public ActionResult GetInterviews()
         {
             ListItemCollection interviews = _sharePointService.GetAllInterviews();
-            if (interviews == null)
+            if (interviews.Count == 0 && interviews == null)
             {
                 return BadRequest("Please add a interview");
             }
-            List<InterViewRegistrationModel> interviewList = interviews.Select(x => new InterViewRegistrationModel
+            List<InterViewRegistrationModel> interviewList = new();
+            foreach (var x in interviews)
             {
-                ID = x["ID"].ToString(),
-                Date = DateOnly.Parse(x["Title"].ToString()),
-                Scoreone = x["ScoreOne"].ToString(),
-                Scoretwo = x["ScoreTwo"].ToString()
+                interviewList.Add(new InterViewRegistrationModel()
+                {
+                    ID = x["ID"].ToString(),
+                    Date = DateOnly.Parse(x["Title"].ToString()),
+                    Scoreone = x["ScoreOne"].ToString(),
+                    Scoretwo = x["ScoreTwo"].ToString()
 
-            }).ToList();
-            return interviewList;
+                });
+            }
+            if(interviewList.Count > 0)
+            {
+                return BadRequest("Please add a interview");
+            }
+            return Ok(interviewList);
         }
         #endregion
 
@@ -61,14 +69,14 @@ namespace TechnorucsWalkInAPI.Controllers
 
             List<InterViewRegistrationModel> interviews = new()
             {
-    new InterViewRegistrationModel
-    {
-        ID = interviewItems["InterviewId"].ToString(),
-        Date = DateOnly.Parse(interviewItems["Title"].ToString()),
-        Scoreone = interviewItems["ScoreOne"].ToString(),
-        Scoretwo = interviewItems["ScoreTwo"].ToString()
-    },
-};
+                new InterViewRegistrationModel
+                        {
+                         ID = interviewItems["InterviewId"].ToString(),
+                         Date = DateOnly.Parse(interviewItems["Title"].ToString()),
+                         Scoreone = interviewItems["ScoreOne"].ToString(),
+                         Scoretwo = interviewItems["ScoreTwo"].ToString()
+                },
+            };
             return interviews;
         }
         #endregion
@@ -77,29 +85,36 @@ namespace TechnorucsWalkInAPI.Controllers
 
 
         #region //Update Interview
-        [HttpPost(Name = "Edit")]
+        [HttpPost]
+        [Route("Edit")]
         public List<InterViewUpdateModel> EditInterview([FromBody] InterViewUpdateModel model)
         {
             ListItem editedInterview = _sharePointService.EditInterview(model);
             List<InterViewUpdateModel> response = new()
             {
-    new InterViewUpdateModel
-    {
-        Date = DateOnly.Parse(editedInterview["Title"].ToString()),
-        Scoreone = editedInterview["ScoreOne"].ToString(),
-        Scoretwo = editedInterview["ScoreTwo"].ToString()
-    },
-};
+                 new InterViewUpdateModel
+                 {
+                     Date = DateOnly.Parse(editedInterview["Title"].ToString()),
+                     Scoreone = editedInterview["ScoreOne"].ToString(),
+                     Scoretwo = editedInterview["ScoreTwo"].ToString()
+                 },
+            };
             return response;
         }
         #endregion
 
 
         #region//Delete Interview
-        [HttpPost(Name ="Delete")]
-        public string DeleteInteview()
+        [HttpPost]
+        [Route("Delete")]
+        public ActionResult<string> DeleteInteview([FromBody] InterViewDeleteModel model)
         {
-            return null;
+            var isDeleted = _sharePointService.DeleteInterview(model);
+            if (isDeleted)
+            {
+                return Ok("Interview Delete Successfully");
+            }
+            return BadRequest("Operationn Failed");
         }
         #endregion
 

@@ -9,7 +9,7 @@ namespace TechnorucsWalkInAPI.Controllers
     
     [ApiController]
     [Route("api/[controller]")]
-    public class RegistrationController : Controller
+    public class RegistrationController : ControllerBase
     {
 
         private readonly SharePointService _sharePointService;
@@ -32,7 +32,7 @@ namespace TechnorucsWalkInAPI.Controllers
             try
             {
                 var isAdminExists = _sharePointService.GetUserbyMail(model.Email);
-                if(isAdminExists.Count()==0)
+                if(isAdminExists.Count()==0||isAdminExists==null)
                 {
                     var admin = _sharePointService.CreateAdmin(model);
                     return Ok(admin);

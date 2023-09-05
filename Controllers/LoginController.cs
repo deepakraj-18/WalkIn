@@ -10,7 +10,7 @@ namespace TechnorucsWalkInAPI.Controllers
     [AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
-    public class LoginController : Controller
+    public class LoginController : ControllerBase
     {
         private readonly SharePointService _sharePointService;
         private readonly Utilites _utilites;
@@ -39,6 +39,10 @@ namespace TechnorucsWalkInAPI.Controllers
             {
 
                 var users = _sharePointService.GetUserbyMail(model.Email);
+                if (users.Count==0)
+                {
+                    return BadRequest( "Un-Registered User");
+                }
                 ListItem user = users[0];
                 var isApproved = _utilites.VerifyApproved(Boolean.Parse(user["IsApproved"].ToString()));
                 var isValidPassword = _utilites.VerifyPassword(model.Password, user["Password"].ToString());

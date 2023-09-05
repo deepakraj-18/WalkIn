@@ -38,7 +38,6 @@ namespace TechnorucsWalkInAPI
                                .AllowAnyMethod();
                     });
             });
-
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

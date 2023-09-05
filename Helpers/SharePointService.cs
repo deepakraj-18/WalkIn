@@ -8,13 +8,22 @@ namespace TechnorucsWalkInAPI.Helpers
 {
     public class SharePointService
     {
+        private IConfiguration _configuration;
         private readonly ClientContext _clientContext;
         private readonly string _adminList;
         private readonly string _interviewList;
         private readonly string _canditateList;
-        public SharePointService(ClientContext clientContext)
+        private readonly string _questionList;
+        public SharePointService(ClientContext clientContext, IConfiguration configuration)
         {
+            _configuration = configuration;
             _clientContext = clientContext;
+            _adminList = configuration["adminList"];
+            _interviewList = configuration["interviewList"];
+            _canditateList = configuration["canditateList"];
+            _questionList = configuration["questionList"];
+
+
 
 
         }
@@ -125,9 +134,10 @@ namespace TechnorucsWalkInAPI.Helpers
             listItem["IsApproved"] = model.IsApproved;
             listItem.Update();
             _clientContext.ExecuteQuery();
+            var user = GetUserbyMail(model.Email);
             return new AdminModel
             {
-                Id = listItem["ID"].ToString(),
+                Id = user[0]["ID"].ToString(),
                 Name = listItem["Title"].ToString(),
                 Email = listItem["Email"].ToString(),
                 IsDeleted = bool.Parse(listItem["IsDeleted"].ToString
@@ -149,7 +159,7 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return Lists;
         }
-        public ListItem  CreateInterview(InterViewRegistrationModel interview)
+        public ListItem CreateInterview(InterViewRegistrationModel interview)
         {
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
             ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
@@ -179,14 +189,14 @@ namespace TechnorucsWalkInAPI.Helpers
             return listItem;
         }
 
-        public ListItem DeleteInterview(InterViewDeleteModel deletemodel)
+        public Boolean DeleteInterview(InterViewDeleteModel deletemodel)
         {
             List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
             ListItem listItem = targetList.GetItemById(deletemodel.ID);
             listItem["IsDeleted"] = true;
             listItem.Update();
             _clientContext.ExecuteQuery();
-            return listItem;
+            return true;
         }
 
 
@@ -229,12 +239,64 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         #region //Add Question
-        public dynamic AddQuestion()
+        public Boolean AddQuestion(QuestionModel question, string InterviewId, string PatternType)
         {
 
-            return null;
+            try
+            {
+                List list = _clientContext.Web.Lists.GetByTitle(_questionList);
+                ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
+                ListItem questionItem = list.AddItem(listItemCreationInformation);
+                questionItem["InterviewID"] = InterviewId;
+                questionItem["Pattern"] = PatternType;
+                questionItem["Question"] = question.QuestionText;
+                questionItem["OptionOne"] = question.Options[0].Option1;
+                questionItem["OptionTwo"] = question.Options[0].Option2;
+                questionItem["OptionThree"] = question.Options[0].Option3;
+                questionItem["OptionFour"] = question.Options[0].Option4;
+                questionItem["Answer"] = question.Answer;
+                questionItem["HasMultipleChoice"] = question.HasMultiplChoice;
+                questionItem["IsDeleted"] = question.IsDeleted;
+                questionItem.Update();
+                _clientContext.ExecuteQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+                throw new Exception(ex.Message);
+            }
+
+
         }
         #endregion
+
+
+
+
+        public List<string> GetListColumns()
+        {
+            try
+            {
+                List list = _clientContext.Web.Lists.GetByTitle(_questionList);
+                FieldCollection fields = list.Fields;
+                _clientContext.Load(fields);
+                _clientContext.ExecuteQuery();
+
+                List<string> columnNames = new List<string>();
+
+                foreach (Field field in fields)
+                {
+                    columnNames.Add(field.InternalName); // You can use field.Title for the display name instead of InternalName
+                }
+
+                return columnNames;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
 
         #endregion
