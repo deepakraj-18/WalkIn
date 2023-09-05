@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.10" />
     <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.23912.12000" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

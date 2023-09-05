@@ -30,10 +30,10 @@ namespace TechnorucsWalkInAPI
             services.AddControllers();
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllOrigins",
+                options.AddPolicy("AllowSpecificOrigins",
                     builder =>
                     {
-                        builder.AllowAnyOrigin()
+                        builder.WithOrigins("https://walk-in.azurewebsites.net", "http://localhost:3000", "http://localhost:4200")
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
@@ -80,7 +80,7 @@ namespace TechnorucsWalkInAPI
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
             app.UseHttpsRedirection();
-            app.UseCors("AllowAllOrigins");
+            app.UseCors("AllowSpecificOrigins");
 
             app.UseAuthentication();
             app.UseAuthorization();
