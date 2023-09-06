@@ -151,7 +151,7 @@ namespace TechnorucsWalkInAPI.Helpers
 
         public ListItemCollection GetAllInterviews()
         {
-            List interviewList = _clientContext.Web.Lists.GetByTitle("interviewList");
+            List interviewList = _clientContext.Web.Lists.GetByTitle(_interviewList);
             CamlQuery query = new CamlQuery();
             query.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></Where></Query></View>";
             ListItemCollection Lists = interviewList.GetItems(query);
@@ -191,7 +191,7 @@ namespace TechnorucsWalkInAPI.Helpers
 
         public Boolean DeleteInterview(InterViewDeleteModel deletemodel)
         {
-            List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
+            List targetList = _clientContext.Web.Lists.GetByTitle(_interviewList);
             ListItem listItem = targetList.GetItemById(deletemodel.ID);
             listItem["IsDeleted"] = true;
             listItem.Update();
@@ -239,7 +239,7 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         #region //Add Question
-        public Boolean AddQuestion(QuestionModel question, string InterviewId, string PatternType)
+        public Boolean AddQuestion(QuestionModel question, string InterviewId)
         {
 
             try
@@ -247,15 +247,17 @@ namespace TechnorucsWalkInAPI.Helpers
                 List list = _clientContext.Web.Lists.GetByTitle(_questionList);
                 ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
                 ListItem questionItem = list.AddItem(listItemCreationInformation);
+                var questionCount = GetAllQuestionsCount()+1;
                 questionItem["InterviewID"] = InterviewId;
-                questionItem["Pattern"] = PatternType;
+                questionItem["Pattern"] = question.PatternType;
+                questionItem["QuestionId"] = questionCount;
                 questionItem["Question"] = question.QuestionText;
                 questionItem["OptionOne"] = question.Options[0].Option1;
                 questionItem["OptionTwo"] = question.Options[0].Option2;
                 questionItem["OptionThree"] = question.Options[0].Option3;
                 questionItem["OptionFour"] = question.Options[0].Option4;
                 questionItem["Answer"] = question.Answer;
-                questionItem["HasMultipleChoice"] = question.HasMultiplChoice;
+                questionItem["HasMultipleChoice"] = question.HasMultipleChoice;
                 questionItem["IsDeleted"] = question.IsDeleted;
                 questionItem.Update();
                 _clientContext.ExecuteQuery();
@@ -273,30 +275,95 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
 
+        #region
+        public ListItemCollection editQuestion(EditQuestionModel model)
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.InterviewId}</Value></Eq></Where></Query></View>";
+            ListItemCollection list = targetList.GetItems(query);
+            _clientContext.Load(list);
+            _clientContext.ExecuteQuery(); 
+            return list;
+        }
+        #endregion
 
-        public List<string> GetListColumns()
+
+        public ListItemCollection GetQuestionForInterview(GetQuestionModel model)
         {
             try
             {
-                List list = _clientContext.Web.Lists.GetByTitle(_questionList);
-                FieldCollection fields = list.Fields;
-                _clientContext.Load(fields);
+                List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.InterviewId}</Value></Eq></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
                 _clientContext.ExecuteQuery();
-
-                List<string> columnNames = new List<string>();
-
-                foreach (Field field in fields)
-                {
-                    columnNames.Add(field.InternalName); // You can use field.Title for the display name instead of InternalName
-                }
-
-                return columnNames;
+                return list;
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+        #endregion
+
+        #region
+        public dynamic GetQuestionById(string QuestionID) 
+        {
+            try
+            {
+                List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{QuestionID}</Value></Eq></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
+                _clientContext.ExecuteQuery();
+                return list;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+
+
+        #region
+        public int GetAllQuestionsCount()
+        {
+            List interviewList = _clientContext.Web.Lists.GetByTitle(_questionList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = @"<View/>";
+            ListItemCollection Lists = interviewList.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists.Count
+                ();
+        }
+        #endregion
+
+
+
+        #region //Examination
+
+
+        #region
+        public int ValidateAnswers(ExaminationModel model) 
+        {
+            var score = 0;
+            foreach (var ans in model.Answer)
+            {
+                var answer=GetQuestionById(ans.QuestionId);
+                if(ans.Answer == answer)
+                {
+                    score++;
+                }
+            }
+            return score;
+        }
+        #endregion
+
 
 
         #endregion

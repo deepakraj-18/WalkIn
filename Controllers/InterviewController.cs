@@ -42,7 +42,7 @@ namespace TechnorucsWalkInAPI.Controllers
             List<InterViewRegistrationModel> interviewList = new List<InterViewRegistrationModel>();
             foreach (var x in interviews)
             {
-                // Make sure to check for null values in each field before accessing them
+                string interviewID = x["InterviewId"] != null ? x["InterviewId"].ToString() : "";
                 string id = x["ID"] != null ? x["ID"].ToString() : "";
                 string title = x["Title"] != null ? x["Title"].ToString() : "";
                 string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
@@ -51,6 +51,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 interviewList.Add(new InterViewRegistrationModel()
                 {
                     ID = id,
+                    InterviewId=interviewID,
                     Date = !string.IsNullOrEmpty(title) ? DateOnly.Parse(title) : default,
                     Scoreone = scoreOne,
                     Scoretwo = scoreTwo
