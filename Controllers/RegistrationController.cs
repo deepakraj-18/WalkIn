@@ -6,14 +6,14 @@ using Microsoft.SharePoint.Client;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
-    
+
     [ApiController]
     [Route("api/[controller]")]
     public class RegistrationController : ControllerBase
     {
 
         private readonly SharePointService _sharePointService;
-        public RegistrationController(SharePointService sharePointService )
+        public RegistrationController(SharePointService sharePointService)
         {
             _sharePointService = sharePointService;
         }
@@ -32,7 +32,7 @@ namespace TechnorucsWalkInAPI.Controllers
             try
             {
                 var isAdminExists = _sharePointService.GetUserbyMail(model.Email);
-                if(isAdminExists.Count()==0||isAdminExists==null)
+                if (isAdminExists.Count() == 0 || isAdminExists == null)
                 {
                     var admin = _sharePointService.CreateAdmin(model);
                     return Ok(admin);
@@ -40,13 +40,13 @@ namespace TechnorucsWalkInAPI.Controllers
                 }
                 else
                 {
-                   return BadRequest(new
-                   {
-                       status="User already Exists",
-                       id = isAdminExists[0]["ID"]
-                   });
+                    return BadRequest(new
+                    {
+                        status = "User already Exists",
+                        id = isAdminExists[0]["ID"]
+                    });
                 }
-               
+
             }
             catch (Exception ex)
             {
@@ -59,10 +59,16 @@ namespace TechnorucsWalkInAPI.Controllers
         #region Canditate Registration
         [HttpPost]
         [Route("Canditate")]
-        public dynamic Canditate([FromBody]CanditateRegistrationModel model)
+        public dynamic Canditate([FromBody] CanditateRegistrationModel model)
         {
-            var canditate=_sharePointService.RegisterCanditate(model);
-            return Ok(canditate);
+            var isCanditateExists = _sharePointService.VerifyCandidate(model.Email);
+            if (!isCanditateExists)
+            {
+                var canditate = _sharePointService.RegisterCanditate(model);
+                return Ok("Registered Successfully");
+            }           
+            return BadRequest("Registration Failed");
+
         }
         #endregion
 
@@ -71,7 +77,7 @@ namespace TechnorucsWalkInAPI.Controllers
         [Route("GetCanditates")]
         public dynamic GetCanditates()
         {
-            var canditateList=_sharePointService.GetAllCanditates();
+            var canditateList = _sharePointService.GetAllCanditates();
             return Ok(canditateList);
         }
         #endregion

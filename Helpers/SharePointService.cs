@@ -175,6 +175,16 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return Lists;
         }
+        public ListItemCollection GetInterviewById(string interviewID)
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_interviewList);
+            CamlQuery query = new();
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewId' /><Value Type='Text'>{interviewID}</Value></Eq></Where></Query></View>";
+            ListItemCollection Lists = targetList.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists;
+        }
         public ListItem CreateInterview(InterViewRegistrationModel interview)
         {
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
@@ -186,6 +196,7 @@ namespace TechnorucsWalkInAPI.Helpers
             listItem["Title"] = interview.Date;
             listItem["ScoreOne"] = interview.Scoreone;
             listItem["ScoreTwo"] = interview.Scoretwo;
+            listItem["PatternCount"] = interview.PatternCount;
             listItem["IsDeleted"] = false;
             listItem.Update();
             _clientContext.ExecuteQuery();
@@ -234,6 +245,8 @@ namespace TechnorucsWalkInAPI.Helpers
             listItem["OthersReference"] = canditate.Reference;
             listItem["Degree"] = canditate.Degree;
             listItem["Gender"] = canditate.Gender;
+            listItem["PatternID"] = canditate.PatternID;
+            listItem["InterviewDate"] = canditate.InterviewDate;
             listItem.Update();
             _clientContext.ExecuteQuery();
             return listItem;
@@ -247,6 +260,21 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.Load(list);
             _clientContext.ExecuteQuery();
             return list;
+        }
+
+        public Boolean VerifyCandidate(string email)
+        {
+            List targetList = _clientContext.Web.Lists.GetByTitle(_canditateList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Email' /><Value Type='Text'>{email}</Value></Eq></Where></Query></View>";
+            ListItemCollection list = targetList.GetItems(query);
+            _clientContext.Load(list);
+            _clientContext.ExecuteQuery();
+            if (list.Count > 0 )
+            {
+            return true;
+            }
+            return false;
         }
 
 

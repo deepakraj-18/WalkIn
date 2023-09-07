@@ -105,7 +105,8 @@ namespace TechnorucsWalkInAPI.Controllers
                          ID = interviewItems["InterviewId"].ToString(),
                          Date = DateOnly.Parse(interviewItems["Title"].ToString()),
                          Scoreone = interviewItems["ScoreOne"].ToString(),
-                         Scoretwo = interviewItems["ScoreTwo"].ToString()
+                         Scoretwo = interviewItems["ScoreTwo"].ToString(),
+                         PatternCount=interviewItems["PatternCount"].ToString(),
                 },
             };
             return interviews;

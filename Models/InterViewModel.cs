@@ -11,6 +11,7 @@
         public DateOnly Date { get; set; }
         public string Scoreone { get; set; }
         public string Scoretwo { get; set; }
+        public string PatternCount { get; set; }    
         public Boolean isDeleted { get; internal set; } = false;
 
 

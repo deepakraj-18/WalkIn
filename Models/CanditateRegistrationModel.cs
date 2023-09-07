@@ -15,6 +15,8 @@
         public string Reference { get; set; }
         public string Degree { get; set; }  
         public string Gender { get; set; }
+        public string PatternID { get; set;}
+        public string InterviewDate { get; set;}
         
     }
 }
