@@ -57,7 +57,7 @@ namespace TechnorucsWalkInAPI.Controllers
 
         [HttpPost]
         [Route("GetQuestionForInterview")]
-        public dynamic GetQuestionForInterview([FromBody] GetQuestionModel model)
+        public dynamic GetQuestionForInterview([FromBody] GetInterviewQuestionModel model)
         {
             var response = _sharePointService.GetQuestionForInterview(model);
             

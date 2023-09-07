@@ -159,6 +159,22 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return Lists;
         }
+        /// <summary>
+        /// This method is used to get the specificed interview by its Id
+        /// </summary>
+        /// <param name="InterviewId">GetInterviewByIdModel</param>
+        /// <returns>The matched details of the specified InterviewId </returns>
+        /// 
+        public ListItemCollection GetInterviewById(GetInterviewByIdModel model)
+        {
+            List targetList=_clientContext.Web.Lists.GetByTitle(_interviewList);
+            CamlQuery query =new();
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewId' /><Value Type='Text'>{model.InterviewId}</Value></Eq></Where></Query></View>";
+            ListItemCollection Lists=targetList.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists;
+        }
         public ListItem CreateInterview(InterViewRegistrationModel interview)
         {
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
@@ -280,7 +296,7 @@ namespace TechnorucsWalkInAPI.Helpers
         {
             List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
             CamlQuery query = new CamlQuery();
-            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.InterviewId}</Value></Eq></Where></Query></View>";
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.QuestionId}</Value></Eq></Where></Query></View>";
             ListItemCollection list = targetList.GetItems(query);
             _clientContext.Load(list);
             _clientContext.ExecuteQuery(); 
@@ -289,7 +305,7 @@ namespace TechnorucsWalkInAPI.Helpers
         #endregion
 
 
-        public ListItemCollection GetQuestionForInterview(GetQuestionModel model)
+        public ListItemCollection GetQuestionForInterview(GetInterviewQuestionModel model)
         {
             try
             {

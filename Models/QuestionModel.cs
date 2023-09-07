@@ -28,9 +28,10 @@
     }
     public class EditQuestionModel
     {
-        public string InterviewId { get; set; }
+        public string QuestionId { get; set; }
+        public string PatternCount { get; set; }
     }
-    public class GetQuestionModel
+    public class GetInterviewQuestionModel
     {
         public string InterviewId { get; set; }
     }

@@ -18,7 +18,6 @@ namespace TechnorucsWalkInAPI.Controllers
         public InterviewController(SharePointService sharePointService)
         {
             _sharePointService = sharePointService;
-
         }
 
 
@@ -64,6 +63,33 @@ namespace TechnorucsWalkInAPI.Controllers
         #endregion
 
 
+        #region
+        [HttpPost("GetInterviewById")]
+        public dynamic GetInterviewById([FromBody] GetInterviewByIdModel model)
+        {
+            var response = _sharePointService.GetInterviewById
+                (model);
+            if (response == null || response[0]==null)
+            {
+                return BadRequest("Interview Not Found");
+            }
+            List<GetInterviewByIdRespoonseModel> interviews = new()
+            {
+                new GetInterviewByIdRespoonseModel()
+                {
+                    ID=response[0]["ID"].ToString(),
+                    Date=DateOnly.Parse(response[0]["Title"].ToString()),
+                    Scoreone=(string) response[0]["ScoreOne"],
+                    Scoretwo=(string) response[0]["ScoreTwo"],
+                    InterviewId=(string)response[0]["InterviewId"]
+                }
+            };
+
+            return Ok(interviews);
+        }
+        #endregion
+
+
 
         #region // Create a interview
         [HttpPost]
@@ -90,8 +116,14 @@ namespace TechnorucsWalkInAPI.Controllers
 
 
         #region //Update Interview
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Edit")]
+        
         public List<InterViewUpdateModel> EditInterview([FromBody] InterViewUpdateModel model)
         {
             ListItem editedInterview = _sharePointService.EditInterview(model);
@@ -119,11 +151,11 @@ namespace TechnorucsWalkInAPI.Controllers
             {
                 return Ok("Interview Delete Successfully");
             }
-            return BadRequest("Operationn Failed");
+            return BadRequest("Operation Failed");
         }
         #endregion
 
-
+        
 
     }
 }
