@@ -34,6 +34,7 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic AddQuestion([FromBody] QuestionsModel questions)
         {
             var result = false;
+            _sharePointService.EditInterview(questions.InterviewID,questions.PatternCount);
             foreach (var question in questions.Questions)
             {
                 result = _sharePointService.AddQuestion(question,questions.InterviewID);

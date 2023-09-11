@@ -78,7 +78,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 new GetInterviewByIdRespoonseModel()
                 {
                     ID=response[0]["ID"].ToString(),
-                    Date=DateOnly.Parse(response[0]["Title"].ToString()),
+                    Date =DateOnly.Parse(response[0]["Title"].ToString()),
                     Scoreone=(string) response[0]["ScoreOne"],
                     Scoretwo=(string) response[0]["ScoreTwo"],
                     InterviewId=(string)response[0]["InterviewId"]
@@ -106,7 +106,6 @@ namespace TechnorucsWalkInAPI.Controllers
                          Date = DateOnly.Parse(interviewItems["Title"].ToString()),
                          Scoreone = interviewItems["ScoreOne"].ToString(),
                          Scoretwo = interviewItems["ScoreTwo"].ToString(),
-                         PatternCount=interviewItems["PatternCount"].ToString(),
                 },
             };
             return interviews;
