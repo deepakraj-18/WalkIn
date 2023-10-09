@@ -34,17 +34,29 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic AddQuestion([FromBody] QuestionsModel questions)
         {
             var result = false;
-            _sharePointService.EditInterview(questions.InterviewID,questions.PatternCount);
-            foreach (var question in questions.Questions)
+            var isPatternUpdated = _sharePointService.EditInterview(questions.InterviewID, questions.PatternCount);
+            if (!isPatternUpdated)
             {
-                result = _sharePointService.AddQuestion(question,questions.InterviewID);
-                if(!result)
+                return BadRequest("Error in updating pattern count");
+            }
+            if (questions.Questions.Count > 0)
+            {
+
+                foreach (var question in questions.Questions)
                 {
-                    return BadRequest("Failed");
+                    result = _sharePointService.AddQuestion(question, questions.InterviewID);
+                    if (!result)
+                    {
+                        return BadRequest("Failed");
+                    }
                 }
+                return Ok("Questions Added Succesfully");
+            }
+            else
+            {
+                return Ok("Please Add questions to the Interview");
             }
 
-            return Ok("Questions Added Succesfully");
         }
         #endregion
 
@@ -63,16 +75,16 @@ namespace TechnorucsWalkInAPI.Controllers
             var response = _sharePointService.GetQuestionForInterview(model);
             var interviewResponse = _sharePointService.GetInterviewById(model.InterviewId);
             string patternCount = interviewResponse[0]["PatternCount"].ToString();
-            List<QuestionModel> questionList= new List<QuestionModel>();
+            List<QuestionModel> questionList = new List<QuestionModel>();
             foreach (var ques in response)
             {
-            List<OptionModel>options = new List<OptionModel>(); 
+                List<OptionModel> options = new List<OptionModel>();
                 string id = ques["ID"] != null ? ques["ID"].ToString() : "";
-                string question = ques["Question"] != null ? ques["Question"].ToString() : ""; 
+                string question = ques["Question"] != null ? ques["Question"].ToString() : "";
                 string patternType = ques["Pattern"] != null ? ques["Pattern"].ToString() : "";
-                string answer = ques["Answer"] != null ? ques["Answer"].ToString() : ""; 
-                string optionOne = ques["OptionOne"] != null ? ques["OptionOne"].ToString() : ""; 
-                string optionTwo = ques["OptionTwo"] != null ? ques["OptionTwo"].ToString() : ""; 
+                string answer = ques["Answer"] != null ? ques["Answer"].ToString() : "";
+                string optionOne = ques["OptionOne"] != null ? ques["OptionOne"].ToString() : "";
+                string optionTwo = ques["OptionTwo"] != null ? ques["OptionTwo"].ToString() : "";
                 string optionThree = ques["OptionThree"] != null ? ques["OptionThree"].ToString() : "";
                 string optionFour = ques["OptionFour"] != null ? ques["OptionFour"].ToString() : "";
 
@@ -84,22 +96,22 @@ namespace TechnorucsWalkInAPI.Controllers
                     Option3 = optionThree,
                     Option4 = optionFour,
                 });
-                
+
                 questionList.Add(new QuestionModel()
                 {
                     QuestionNumber = id,
                     QuestionText = question,
                     Answer = answer,
                     Options = options.ToList(),
-                    PatternType=patternType
+                    PatternType = patternType
                 });
             }
             List<QuestionsModel> interviewModels = new List<QuestionsModel>();
             interviewModels.Add(new QuestionsModel()
             {
                 InterviewID = model.InterviewId,
-                Questions=questionList.ToList(),
-                PatternCount=patternCount
+                Questions = questionList.ToList(),
+                PatternCount = patternCount
             });
 
             return Ok(interviewModels);
@@ -109,7 +121,7 @@ namespace TechnorucsWalkInAPI.Controllers
         #region //Get Columns
         [HttpPost]
         [Route("EditQuestion")]
-        public dynamic EditQuestion([FromBody] EditQuestionModel model) 
+        public dynamic EditQuestion([FromBody] EditQuestionModel model)
         {
             var response = _sharePointService.editQuestion(model);
             return Ok(response);

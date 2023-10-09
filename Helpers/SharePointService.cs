@@ -237,14 +237,23 @@ namespace TechnorucsWalkInAPI.Helpers
             }
             return null;
         }
-        public ListItem EditInterview(string interviewId, string patternCount)
+        public dynamic EditInterview(string interviewId, string patternCount)
         {
-            List targetList = _clientContext.Web.Lists.GetByTitle(_adminList);
-            ListItem listItem = targetList.GetItemById(interviewId);
-            listItem["PatternCount"] = patternCount;
-            listItem.Update();
+            List targetList = _clientContext.Web.Lists.GetByTitle(_interviewList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewId' /><Value Type='Text'>{interviewId}</Value></Eq></Where></Query></View>";
+            ListItemCollection items = targetList.GetItems(query);
+            _clientContext.Load(items);
             _clientContext.ExecuteQuery();
-            return listItem;
+            if (items.Count == 1)
+            {
+                ListItem item = items[0];
+                item["PatternCount"] = patternCount;
+                item.Update();
+                _clientContext.ExecuteQuery();
+                return true;
+            }
+            return false;
         }
 
         public Boolean DeleteInterview(InterViewDeleteModel deletemodel)
@@ -351,15 +360,31 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         #region
-        public ListItemCollection editQuestion(EditQuestionModel model)
+        public dynamic editQuestion(EditQuestionModel model)
         {
+
             List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
-            CamlQuery query = new CamlQuery();
-            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.QuestionId}</Value></Eq></Where></Query></View>";
-            ListItemCollection list = targetList.GetItems(query);
-            _clientContext.Load(list);
-            _clientContext.ExecuteQuery();
-            return list;
+
+            foreach (var qws in model.Questions)
+            {
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{qws.QuestionNumber}</Value></Eq></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
+                _clientContext.ExecuteQuery();
+                var questionItem = list[0];
+                questionItem["Question"] = qws.QuestionText;
+                questionItem["OptionOne"] = qws.Options[0].Option1;
+                questionItem["OptionTwo"] = qws.Options[0].Option2;
+                questionItem["OptionThree"] = qws.Options[0].Option3;
+                questionItem["OptionFour"] = qws.Options[0].Option4;
+                questionItem["Answer"] = qws.Answer;
+                questionItem["HasMultipleChoice"] = qws.HasMultipleChoice;
+                questionItem["IsDeleted"] = qws.IsDeleted;
+                questionItem.Update();
+                _clientContext.ExecuteQuery();
+            }
+            return "Questions edited successfully" ;
         }
         #endregion
 

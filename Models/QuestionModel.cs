@@ -16,8 +16,8 @@
 
         public List<OptionModel> Options { get; set; }
         public string Answer { get; set; }
-        public Boolean IsDeleted { get; set; }
-        public Boolean HasMultipleChoice { get; set; }
+        public Boolean IsDeleted { get; set; } = false;
+        public Boolean HasMultipleChoice { get; set; }=false;
     }
 
     public class QuestionsModel
@@ -28,8 +28,10 @@
     }
     public class EditQuestionModel
     {
-        public string QuestionId { get; set; }
+        public string InterviewID { get; set; }
         public string PatternCount { get; set; }
+        public List<QuestionModel> Questions { get; set; }
+
     }
     public class GetInterviewQuestionModel
     {
