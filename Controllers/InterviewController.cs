@@ -7,8 +7,8 @@ using TechnorucsWalkInAPI.Models;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
-    //[Authorize(Roles = "Admin")]
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin")]
+    //[AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class InterviewController : ControllerBase
@@ -47,7 +47,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
                 string scoreTwo = x["ScoreTwo"] != null ? x["ScoreTwo"].ToString() : "";
 
-                interviewList.Add(new InterViewRegistrationModel()
+                interviewList.Add(new InterViewRegistrationModel
                 {
                     ID = id,
                     InterviewId=interviewID,

@@ -33,7 +33,7 @@ namespace TechnorucsWalkInAPI
                 options.AddPolicy("AllowSpecificOrigins",
                     builder =>
                     {
-                        builder.WithOrigins("https://walk-in.azurewebsites.net", "http://localhost:3000", "http://localhost:4200", "http://localhost:3001")
+                        builder.WithOrigins("https://walk-in.azurewebsites.net", "https://internalwalkin.azurewebsites.net", "http://localhost:3000", "http://localhost:4200", "http://localhost:3001")
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
