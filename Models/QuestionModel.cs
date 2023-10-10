@@ -29,7 +29,6 @@
     public class EditQuestionModel
     {
         public string InterviewID { get; set; }
-        public string PatternCount { get; set; }
         public List<QuestionModel> Questions { get; set; }
 
     }

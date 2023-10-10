@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing.Internal;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Office.SharePoint.Tools;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.News.DataModel;
@@ -160,6 +161,18 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return Lists;
         }
+
+        public int GetInterviewCount()
+        {
+            List interviewList = _clientContext.Web.Lists.GetByTitle(_interviewList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = @"<View></View>";
+            ListItemCollection Lists = interviewList.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists.Count();
+
+        }
         /// <summary>
         /// This method is used to get the specificed interview by its Id
         /// </summary>
@@ -202,7 +215,7 @@ namespace TechnorucsWalkInAPI.Helpers
             List list = _clientContext.Web.Lists.GetByTitle(_interviewList);
             ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
             ListItem listItem = list.AddItem(listItemCreationInformation);
-            int interviewCount = GetAllInterviews().Count + 1;
+            int interviewCount = GetInterviewCount() + 1;
             string interviewId = "INV" + interviewCount.ToString("D4");
             listItem["InterviewId"] = interviewId;
             listItem["Title"] = interview.Date;
@@ -334,7 +347,7 @@ namespace TechnorucsWalkInAPI.Helpers
                 var questionCount = GetAllQuestionsCount() + 1;
                 questionItem["InterviewID"] = InterviewId;
                 questionItem["Pattern"] = question.PatternType;
-                questionItem["QuestionId"] = questionCount;
+                questionItem["QuestionId"] = "QW"+questionCount.ToString("D4");
                 questionItem["Question"] = question.QuestionText;
                 questionItem["OptionOne"] = question.Options[0].Option1;
                 questionItem["OptionTwo"] = question.Options[0].Option2;
@@ -362,29 +375,49 @@ namespace TechnorucsWalkInAPI.Helpers
         #region
         public dynamic editQuestion(EditQuestionModel model)
         {
-
-            List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
-
-            foreach (var qws in model.Questions)
+            
+            try
             {
-                CamlQuery query = new CamlQuery();
-                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{qws.QuestionNumber}</Value></Eq></Where></Query></View>";
-                ListItemCollection list = targetList.GetItems(query);
-                _clientContext.Load(list);
-                _clientContext.ExecuteQuery();
-                var questionItem = list[0];
-                questionItem["Question"] = qws.QuestionText;
-                questionItem["OptionOne"] = qws.Options[0].Option1;
-                questionItem["OptionTwo"] = qws.Options[0].Option2;
-                questionItem["OptionThree"] = qws.Options[0].Option3;
-                questionItem["OptionFour"] = qws.Options[0].Option4;
-                questionItem["Answer"] = qws.Answer;
-                questionItem["HasMultipleChoice"] = qws.HasMultipleChoice;
-                questionItem["IsDeleted"] = qws.IsDeleted;
-                questionItem.Update();
-                _clientContext.ExecuteQuery();
+                List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+
+                foreach (var qws in model.Questions)
+                {
+                    CamlQuery query = new CamlQuery();
+                    query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{qws.QuestionNumber}</Value></Eq></Where></Query></View>";
+                    ListItemCollection list = targetList.GetItems(query);
+                    _clientContext.Load(list);
+                    _clientContext.ExecuteQuery();
+                    if (list.Count == 0)
+                    {
+                        AddQuestion(qws, model.InterviewID);
+                    }
+                    else
+                    {
+
+                        var questionItem = list[0];
+                        questionItem["Question"] = qws.QuestionText;
+                        questionItem["OptionOne"] = qws.Options[0].Option1;
+                        questionItem["OptionTwo"] = qws.Options[0].Option2;
+                        questionItem["OptionThree"] = qws.Options[0].Option3;
+                        questionItem["OptionFour"] = qws.Options[0].Option4;
+                        questionItem["Answer"] = qws.Answer;
+                        questionItem["HasMultipleChoice"] = qws.HasMultipleChoice;
+                        questionItem["IsDeleted"] = qws.IsDeleted;
+                        questionItem.Update();
+                        _clientContext.ExecuteQuery();
+                    }
+                }
+                return "Questions edited successfully";
             }
-            return "Questions edited successfully" ;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private dynamic Ok(string v)
+        {
+            throw new NotImplementedException();
         }
         #endregion
 

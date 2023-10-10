@@ -34,6 +34,14 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic AddQuestion([FromBody] QuestionsModel questions)
         {
             var result = false;
+            if(questions.InterviewID == null)
+            {
+                return BadRequest("Interview Id is Mandatory");
+            }
+            if (questions.PatternCount == null)
+            {
+                return BadRequest("Pattern Count is Mandatory");
+            }
             var isPatternUpdated = _sharePointService.EditInterview(questions.InterviewID, questions.PatternCount);
             if (!isPatternUpdated)
             {
@@ -41,7 +49,6 @@ namespace TechnorucsWalkInAPI.Controllers
             }
             if (questions.Questions.Count > 0)
             {
-
                 foreach (var question in questions.Questions)
                 {
                     result = _sharePointService.AddQuestion(question, questions.InterviewID);
@@ -123,6 +130,10 @@ namespace TechnorucsWalkInAPI.Controllers
         [Route("EditQuestion")]
         public dynamic EditQuestion([FromBody] EditQuestionModel model)
         {
+            if (model.InterviewID == null)
+            {
+                return BadRequest("Interview Id is mandatory");
+            }
             var response = _sharePointService.editQuestion(model);
             return Ok(response);
         }

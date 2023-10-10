@@ -51,7 +51,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 {
                     ID = id,
                     InterviewId=interviewID,
-                    Date = !string.IsNullOrEmpty(title) ? DateOnly.Parse(title) : default,
+                    Date = !string.IsNullOrEmpty(title.ToString()) ? DateOnly.Parse(title.ToString()) : default,
                     Scoreone = scoreOne,
                     Scoretwo = scoreTwo
                 });
