@@ -11,6 +11,7 @@
     public class QuestionModel
     {
         public string QuestionNumber { get; set; }
+        public string QuestionId { get; set; }
         public string QuestionText { get; set; }
         public string PatternType { get; set; }
 

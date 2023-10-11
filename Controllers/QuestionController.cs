@@ -87,6 +87,7 @@ namespace TechnorucsWalkInAPI.Controllers
             {
                 List<OptionModel> options = new List<OptionModel>();
                 string id = ques["ID"] != null ? ques["ID"].ToString() : "";
+                string  num= ques["QuestionId"] != null ? ques["QuestionId"].ToString() : "";
                 string question = ques["Question"] != null ? ques["Question"].ToString() : "";
                 string patternType = ques["Pattern"] != null ? ques["Pattern"].ToString() : "";
                 string answer = ques["Answer"] != null ? ques["Answer"].ToString() : "";
@@ -107,6 +108,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 questionList.Add(new QuestionModel()
                 {
                     QuestionNumber = id,
+                    QuestionId=num,
                     QuestionText = question,
                     Answer = answer,
                     Options = options.ToList(),
@@ -125,7 +127,7 @@ namespace TechnorucsWalkInAPI.Controllers
         }
 
 
-        #region //Get Columns
+        #region //Edit Question
         [HttpPost]
         [Route("EditQuestion")]
         public dynamic EditQuestion([FromBody] EditQuestionModel model)
