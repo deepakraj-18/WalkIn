@@ -2,6 +2,7 @@
 {
     public class ExaminationModel
     {
+        public string canditateEmail {  get; set; }
         public List<ExamAnswerModel> Answer { get; set; }
     }
     public class ExamAnswerModel

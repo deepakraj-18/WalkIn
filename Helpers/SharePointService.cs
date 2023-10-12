@@ -202,6 +202,7 @@ namespace TechnorucsWalkInAPI.Helpers
 
         public ListItemCollection GetInterviewByDate(string date)
         {
+            date = "13-10-2023";
             List targetList = _clientContext.Web.Lists.GetByTitle(_interviewList);
             CamlQuery query = new();
             query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Title' /><Value Type='Text'>{date}</Value></Eq></Where></Query></View>";
@@ -280,7 +281,7 @@ namespace TechnorucsWalkInAPI.Helpers
         }
 
 
-        public ListItem RegisterCanditate(CanditateRegistrationModel canditate)
+        public ListItem RegisterCanditate(CanditateRegistrationModel canditate )
         {
             List list = _clientContext.Web.Lists.GetByTitle(_canditateList);
             ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
@@ -298,7 +299,7 @@ namespace TechnorucsWalkInAPI.Helpers
             listItem["OthersReference"] = canditate.Reference;
             listItem["Degree"] = canditate.Degree;
             listItem["Gender"] = canditate.Gender;
-            listItem["PatternID"] = canditate.PatternID;
+            listItem["PatternId"] = canditate.PatternID;
             listItem["InterviewDate"] = canditate.InterviewDate;
             listItem.Update();
             _clientContext.ExecuteQuery();
@@ -347,7 +348,7 @@ namespace TechnorucsWalkInAPI.Helpers
                 var questionCount = GetAllQuestionsCount() + 1;
                 questionItem["InterviewID"] = InterviewId;
                 questionItem["Pattern"] = question.PatternType;
-                questionItem["QuestionId"] = "QW"+questionCount.ToString("D4");
+                questionItem["QuestionId"] = "QW" + questionCount.ToString("D4");
                 questionItem["Question"] = question.QuestionText;
                 questionItem["OptionOne"] = question.Options[0].Option1;
                 questionItem["OptionTwo"] = question.Options[0].Option2;
@@ -375,7 +376,7 @@ namespace TechnorucsWalkInAPI.Helpers
         #region
         public dynamic editQuestion(EditQuestionModel model)
         {
-            
+
             try
             {
                 List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
@@ -482,30 +483,66 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         #region
-        public int ValidateAnswers(ExaminationModel model)
+        public string ValidateAnswers(ExaminationModel model)
         {
             var score = 0;
             foreach (var ans in model.Answer)
             {
                 var answer = GetQuestionById(ans.QuestionId);
-                if (ans.Answer == answer)
+                if (ans.Answer == answer[0]["Answer"])
                 {
                     score++;
                 }
             }
-            return score;
+            UpdateScores(model.canditateEmail, score.ToString());
+
+            return "Score updated successfully";
+        }
+        #endregion
+
+
+
+        #region
+        public dynamic UpdateScores(string mail,string score)
+        {
+            if (score == null)
+                return null;
+            try
+            {
+                List targetList = _clientContext.Web.Lists.GetByTitle(_canditateList);
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Email' /><Value Type='Text'>{mail}</Value></Eq></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
+                _clientContext.ExecuteQuery();
+                if (list.Count > 0)
+                {
+                    ListItem listItem = list[0];
+                    listItem["ScoreOne"] = score;
+                    listItem.Update();
+                    _clientContext.ExecuteQuery();
+                }
+
+                return list;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
         #endregion
 
         public dynamic GetQuestionsForExamination(string InterviewID, string patternId)
         {
             List targetLists = _clientContext.Web.Lists.GetByTitle(_questionList);
-            CamlQuery query = new CamlQuery();
-            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{InterviewID}</Value></Eq><Eq><FieldRef Name='Pattern' /><Value Type='Text'>{patternId}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+            CamlQuery query = new();
+            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{InterviewID}</Value></Eq><Neq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>1</Value></Neq></And></Where></Query></View>";
             ListItemCollection Lists = targetLists.GetItems(query);
             _clientContext.Load(Lists);
             _clientContext.ExecuteQuery();
             return Lists;
+
         }
 
 

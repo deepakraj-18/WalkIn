@@ -15,8 +15,28 @@
         public string Reference { get; set; }
         public string Degree { get; set; }  
         public string Gender { get; set; }
-        public string PatternID { get; set;}
-        public string InterviewDate { get; set;}
-        
+        public string PatternID { get; internal set; }
+        public string InterviewDate { get;internal set; }
+        public string InterviewID { get; internal set; }
+
+    }
+    public class CanditatesList
+    {
+        public List<ViewCanditateModel> Canditates { get; set; }
+    }
+    public class ViewCanditateModel
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string ScoreOne { get; set; }
+        public string ScoreTwo { get; set; }
+
+
+    }
+    public class RegistrationResponse
+    {
+        public string Status { get; set; }
+        public List<ExaminationQuestionModel> Questions { get; set; }
     }
 }

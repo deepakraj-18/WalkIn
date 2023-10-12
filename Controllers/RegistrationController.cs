@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TechnorucsWalkInAPI.Models;
 using TechnorucsWalkInAPI.Helpers;
@@ -62,24 +62,33 @@ namespace TechnorucsWalkInAPI.Controllers
         [Route("Canditate")]
         public dynamic Canditate([FromBody] CanditateRegistrationModel model)
         {
-            var isCanditateExists = _sharePointService.VerifyCandidate(model.Email);
-            if (!isCanditateExists)
-            {
-                var canditate = _sharePointService.RegisterCanditate(model);
-                return Ok("Registered Successfully");
-            }
+            //Check if any interview today
             DateTime currentDate = DateTime.Today;
             string formattedDate = currentDate.ToString("dd-MM-yyyy");
-            var interview= _sharePointService.GetInterviewByDate(formattedDate);
-            var interviewId=interview[0]["InterviewId"].ToString();
-            var patternCount =int.Parse(interview[0]["PatternCount"].ToString());
+            var interview = _sharePointService.GetInterviewByDate(formattedDate);
+            if (interview == null || interview.Count == 0)
+            {
+                return BadRequest("No interviews today");
+            }
+            ////Already Registered Canditate
+            //var isCanditateExists = _sharePointService.VerifyCandidate(model.Email);
+            //if (!isCanditateExists)
+            //{
+            //    return Ok("Registered Successfully");
+            //}
+            var interviewId = interview[0]["InterviewId"].ToString();
+            model.InterviewDate = formattedDate;
             Random random = new Random();
-            var pattern = random.Next(1, patternCount);
-            var examinationQuestions = _sharePointService.GetQuestionsForExamination(interviewId, pattern.ToString());
+            var patternCount = int.Parse(interview[0]["PatternCount"].ToString());
+            model.PatternID = random.Next(1, patternCount).ToString();
+            model.InterviewID = interviewId;
+
+            var canditate = _sharePointService.RegisterCanditate(model);
+            var examinationQuestions = _sharePointService.GetQuestionsForExamination(interviewId, model.PatternID);
             List<ExaminationQuestionModel> questions = new();
             foreach (var ques in examinationQuestions)
             {
-            List<OptionsModel>options = new List<OptionsModel>();
+                List<OptionsModel> options = new List<OptionsModel>();
                 string questionId = ques["QuestionId"].ToString();
                 string question = ques["Question"].ToString();
                 string optionOne = ques["OptionOne"].ToString();
@@ -88,10 +97,10 @@ namespace TechnorucsWalkInAPI.Controllers
                 string optionFour = ques["OptionFour"].ToString();
                 options.Add(new OptionsModel()
                 {
-                    OptionsOne= optionOne,
-                    OptionsTwo= optionTwo,
-                    OptionsThree= optionThree,
-                    OptionsFour= optionFour,
+                    OptionsOne = optionOne,
+                    OptionsTwo = optionTwo,
+                    OptionsThree = optionThree,
+                    OptionsFour = optionFour,
                 });
                 questions.Add(new ExaminationQuestionModel()
                 {
@@ -100,11 +109,16 @@ namespace TechnorucsWalkInAPI.Controllers
                     Options = options.ToList()
 
                 });
-                
+
 
             }
-            return Ok(questions);
+            var response = new RegistrationResponse
+            {
+                Status = "Register successfully",
+                Questions = questions
+            };
 
+            return response;
         }
         #endregion
 
@@ -114,7 +128,29 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic GetCanditates()
         {
             var canditateList = _sharePointService.GetAllCanditates();
-            return Ok(canditateList);
+            List<CanditatesList> canditates = new();
+            foreach (var c in canditateList)
+            {
+                List<ViewCanditateModel> canditate=new List<ViewCanditateModel>();
+                string name = c["Title"].ToString();
+                string email = c["Email"].ToString();
+                string phoneNumber = c["PhoneNumber"].ToString();
+                string scoreOne = c["ScoreOne"].ToString() != null ? c["ScoreOne"].ToString():"";
+                string scoreTwo = c["ScoreTwo"].ToString()!=null? c["ScoreTwo"].ToString() : "";
+                canditate.Add(new ViewCanditateModel()
+                {
+                    Name=name,
+                    Email=email,
+                    PhoneNumber=phoneNumber,
+                    ScoreOne=scoreOne,
+                    ScoreTwo=scoreTwo
+                });
+                canditates.Add(new ()
+                {
+                    Canditates=canditate
+                });
+            }
+            return Ok(canditates);
         }
         #endregion
 

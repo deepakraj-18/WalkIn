@@ -22,11 +22,11 @@ namespace TechnorucsWalkInAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPost("GetQuestion")]
-        public int GetQuestion([FromBody] ExaminationModel model)
+        [HttpPost("SubmitAnswer")]
+        public string GetQuestion([FromBody] ExaminationModel model)
         {
-            var score = _sharePointService.ValidateAnswers(model);
-            return score;
+            var response = _sharePointService.ValidateAnswers(model);
+            return response;
         }
         
     }
