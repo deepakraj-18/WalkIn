@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.News.DataModel;
@@ -32,33 +33,41 @@ namespace TechnorucsWalkInAPI.Controllers
         [Route("GetAllInterviews")]
         public ActionResult GetInterviews()
         {
-            ListItemCollection interviews = _sharePointService.GetAllInterviews();
-            if (interviews == null || interviews.Count == 0)
+            try
             {
-                return BadRequest("No interviews found.");
-            }
 
-            List<InterViewRegistrationModel> interviewList = new List<InterViewRegistrationModel>();
-            foreach (var x in interviews)
-            {
-                string interviewID = x["InterviewId"] != null ? x["InterviewId"].ToString() : "";
-                string id = x["ID"] != null ? x["ID"].ToString() : "";
-                string title = x["Title"] != null ? x["Title"].ToString() : "";
-                string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
-                string scoreTwo = x["ScoreTwo"] != null ? x["ScoreTwo"].ToString() : "";
-
-
-                interviewList.Add(new InterViewRegistrationModel
+                ListItemCollection interviews = _sharePointService.GetAllInterviews();
+                if (interviews == null || interviews.Count == 0)
                 {
-                    ID = id,
-                    InterviewId=interviewID,
-                    Date = !string.IsNullOrEmpty(title.ToString()) ? DateOnly.Parse(title.ToString()) : default,
-                    Scoreone = scoreOne,
-                    Scoretwo = scoreTwo
-                });
-            }
+                    return BadRequest("No interviews found.");
+                }
 
-            return Ok(interviewList);
+                List<InterViewRegistrationModel> interviewList = new List<InterViewRegistrationModel>();
+                foreach (var x in interviews)
+                {
+                    string interviewID = x["InterviewId"] != null ? x["InterviewId"].ToString() : "";
+                    string id = x["ID"] != null ? x["ID"].ToString() : "";
+                    string title = x["Title"] != null ? x["Title"].ToString() : "";
+                    string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
+                    string scoreTwo = x["ScoreTwo"] != null ? x["ScoreTwo"].ToString() : "";
+
+
+                    interviewList.Add(new InterViewRegistrationModel
+                    {
+                        ID = id,
+                        InterviewId = interviewID,
+                        Date = !string.IsNullOrEmpty(title.ToString()) ? DateOnly.ParseExact(title.ToString(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture) : default,
+                        Scoreone = scoreOne,
+                        Scoretwo = scoreTwo
+                    });
+                }
+
+                return Ok(interviewList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         #endregion
@@ -70,7 +79,7 @@ namespace TechnorucsWalkInAPI.Controllers
         {
             var response = _sharePointService.GetInterviewById
                 (model);
-            if (response == null || response[0]==null)
+            if (response == null || response[0] == null)
             {
                 return BadRequest("Interview Not Found");
             }
@@ -124,7 +133,7 @@ namespace TechnorucsWalkInAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Edit")]
-        
+
         public List<InterViewUpdateModel> EditInterview([FromBody] InterViewUpdateModel model)
         {
             ListItem editedInterview = _sharePointService.EditInterview(model);
@@ -156,7 +165,7 @@ namespace TechnorucsWalkInAPI.Controllers
         }
         #endregion
 
-        
+
 
     }
 }
