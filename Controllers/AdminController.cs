@@ -94,7 +94,6 @@ namespace TechnorucsWalkInAPI.Controllers
 
 
         #region
-        [AllowAnonymous]
         [HttpGet]
         [Route("GetAllAdmin")]
         public dynamic GetAllAdmin()

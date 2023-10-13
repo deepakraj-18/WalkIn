@@ -47,6 +47,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 string scoreOne = x["ScoreOne"] != null ? x["ScoreOne"].ToString() : "";
                 string scoreTwo = x["ScoreTwo"] != null ? x["ScoreTwo"].ToString() : "";
 
+
                 interviewList.Add(new InterViewRegistrationModel
                 {
                     ID = id,

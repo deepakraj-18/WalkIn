@@ -46,9 +46,10 @@ namespace TechnorucsWalkInAPI.Controllers
                 ListItem user = users[0];
                 var isApproved = _utilites.VerifyApproved(Boolean.Parse(user["IsApproved"].ToString()));
                 var isValidPassword = _utilites.VerifyPassword(model.Password, user["Password"].ToString());
-                if (isApproved)
+
+                if (isValidPassword)
                 {
-                    if (isValidPassword)
+                    if (isApproved)
                     {
                         var token = _utilites.GetToken(user["Title"].ToString());
                         return Ok(new
@@ -59,17 +60,18 @@ namespace TechnorucsWalkInAPI.Controllers
                             Email = user["Email"].ToString(),
                             IsApproved = user["IsApproved"].ToString(),
                             IsDeleted = user["IsDeleted"].ToString(),
-                            Token=token
+                            IsSuperAdmin = user["IsSuperAdmin"].ToString(),
+                            Token = token
                         });
                     }
-                    else 
+                    else
                     {
-                        return BadRequest("Password Incorrect");
+                        return BadRequest("Unapproved");
                     }
                 }
                 else
                 {
-                    return BadRequest("Unapproved");
+                    return BadRequest("Password Incorrect");
                 }
 
             }

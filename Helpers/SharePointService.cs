@@ -34,7 +34,7 @@ namespace TechnorucsWalkInAPI.Helpers
             List userList = _clientContext.Web.Lists.GetByTitle(_adminList);
             CamlQuery query = new()
             {
-                ViewXml = $@"<View/>"
+                ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='IsDeleted' /><Value Type='Text'>0</Value></Eq></Where></Query></View>"
             };
             ListItemCollection items = userList.GetItems(query);
             _clientContext.Load(items);
