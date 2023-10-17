@@ -8,8 +8,8 @@ using TechnorucsWalkInAPI.Models;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
-    //[Authorize(Roles = "Admin")]
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin")]
+    //[AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class QuestionController : ControllerBase

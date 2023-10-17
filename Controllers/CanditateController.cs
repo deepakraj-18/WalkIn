@@ -6,7 +6,7 @@ using TechnorucsWalkInAPI.Models;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
-    //[Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class CanditateController : ControllerBase
