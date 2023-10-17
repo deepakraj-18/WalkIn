@@ -23,11 +23,21 @@ namespace TechnorucsWalkInAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("SubmitAnswer")]
-        public string GetQuestion([FromBody] ExaminationModel model)
+        public dynamic GetQuestion([FromBody] ExaminationModel model)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            if(model.Answer==null&&model.Answer.Count==0)
+            {
+                return BadRequest("Answer can not be empty");
+            }
+            var isAnswerSaved = _sharePointService.SaveAnswer(model);
             var response = _sharePointService.ValidateAnswers(model);
             return response;
         }
-        
+
+
     }
 }

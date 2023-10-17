@@ -64,95 +64,77 @@ namespace TechnorucsWalkInAPI.Controllers
         {
             //Check if any interview today
             DateTime currentDate = DateTime.Today;
-            string formattedDate = currentDate.ToString("dd-MM-yyyy");
+            string formattedDate = currentDate.ToString("MM-dd-yyyy");
             var interview = _sharePointService.GetInterviewByDate(formattedDate);
             if (interview == null || interview.Count == 0)
             {
                 return BadRequest("No interviews today");
             }
             ////Already Registered Canditate
-            //var isCanditateExists = _sharePointService.VerifyCandidate(model.Email);
-            //if (!isCanditateExists)
-            //{
-            //    return Ok("Registered Successfully");
-            //}
+            var isCanditateExists = _sharePointService.VerifyCandidate(model.Email,formattedDate);
+            if (isCanditateExists)
+            {
+                return Ok("Canditate is Already Registered for today's Interview");
+            }
             var interviewId = interview[0]["InterviewId"].ToString();
             model.InterviewDate = formattedDate;
             Random random = new Random();
             var patternCount = int.Parse(interview[0]["PatternCount"].ToString());
-            model.PatternID = random.Next(1, patternCount).ToString();
+            model.PatternID = random.Next(1, patternCount+1).ToString();
             model.InterviewID = interviewId;
 
-            var canditate = _sharePointService.RegisterCanditate(model);
-            var examinationQuestions = _sharePointService.GetQuestionsForExamination(interviewId, model.PatternID);
-            List<ExaminationQuestionModel> questions = new();
-            foreach (var ques in examinationQuestions)
+            var canditate =_sharePointService.RegisterCanditate(model);
+            if (canditate != null)
             {
-                List<OptionsModel> options = new List<OptionsModel>();
-                string questionId = ques["QuestionId"].ToString();
-                string question = ques["Question"].ToString();
-                string optionOne = ques["OptionOne"].ToString();
-                string optionTwo = ques["OptionTwo"].ToString();
-                string optionThree = ques["OptionThree"].ToString();
-                string optionFour = ques["OptionFour"].ToString();
-                options.Add(new OptionsModel()
+                var examinationQuestions = _sharePointService.GetQuestionsForExamination(interviewId, model.PatternID);
+                List<ExaminationQuestionModel> questions = new();
+                foreach (var ques in examinationQuestions)
                 {
-                    OptionsOne = optionOne,
-                    OptionsTwo = optionTwo,
-                    OptionsThree = optionThree,
-                    OptionsFour = optionFour,
-                });
-                questions.Add(new ExaminationQuestionModel()
+                    if (ques["IsDeleted"]==false)
+                    {
+                        List<OptionsModel> options = new List<OptionsModel>();
+                        string questionId = ques["QuestionId"].ToString();
+                        string question = ques["Question"].ToString();
+                        string optionOne = ques["OptionOne"].ToString();
+                        string optionTwo = ques["OptionTwo"].ToString();
+                        string optionThree = ques["OptionThree"].ToString();
+                        string optionFour = ques["OptionFour"].ToString();
+                        options.Add(new OptionsModel()
+                        {
+                            OptionsOne = optionOne,
+                            OptionsTwo = optionTwo,
+                            OptionsThree = optionThree,
+                            OptionsFour = optionFour,
+                        });
+                        questions.Add(new ExaminationQuestionModel()
+                        {
+                            Question = question,
+                            QuestionId = questionId,
+                            Options = options.ToList()
+
+                        });
+                    }
+                    
+
+
+                }
+                var response = new RegistrationResponse
                 {
-                    Question = question,
-                    QuestionId = questionId,
-                    Options = options.ToList()
+                    Status = "Register successfully",
+                    Questions = questions
+                };
 
-                });
-
-
+                return response;
             }
-            var response = new RegistrationResponse
+            else
             {
-                Status = "Register successfully",
-                Questions = questions
-            };
 
-            return response;
+                return BadRequest("Error in registration");
+            }
+            
         }
         #endregion
 
-        #region
-        [HttpPost]
-        [Route("GetCanditates")]
-        public dynamic GetCanditates()
-        {
-            var canditateList = _sharePointService.GetAllCanditates();
-            List<CanditatesList> canditates = new();
-            foreach (var c in canditateList)
-            {
-                List<ViewCanditateModel> canditate=new List<ViewCanditateModel>();
-                string name = c["Title"].ToString();
-                string email = c["Email"].ToString();
-                string phoneNumber = c["PhoneNumber"].ToString();
-                string scoreOne = c["ScoreOne"].ToString() != null ? c["ScoreOne"].ToString():"";
-                string scoreTwo = c["ScoreTwo"].ToString()!=null? c["ScoreTwo"].ToString() : "";
-                canditate.Add(new ViewCanditateModel()
-                {
-                    Name=name,
-                    Email=email,
-                    PhoneNumber=phoneNumber,
-                    ScoreOne=scoreOne,
-                    ScoreTwo=scoreTwo
-                });
-                canditates.Add(new ()
-                {
-                    Canditates=canditate
-                });
-            }
-            return Ok(canditates);
-        }
-        #endregion
 
     }
 }

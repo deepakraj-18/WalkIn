@@ -2,7 +2,8 @@
 {
     public class ExaminationModel
     {
-        public string canditateEmail {  get; set; }
+        public string InterviewId { get; set; }
+        public string CanditateEmail {  get; set; }
         public List<ExamAnswerModel> Answer { get; set; }
     }
     public class ExamAnswerModel
