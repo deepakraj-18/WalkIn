@@ -32,12 +32,15 @@
         public string PhoneNumber { get; set; }
         public string ScoreOne { get; set; }
         public string ScoreTwo { get; set; }
+        public Boolean Result { get; set; }
 
 
     }
     public class RegistrationResponse
     {
         public string Status { get; set; }
+        public string InterviewId { get; set; }
+        public string CanditateEmail { get; set; }
         public List<ExaminationQuestionModel> Questions { get; set; }
     }
     public class GetCanditateByEmailModel
@@ -59,5 +62,18 @@
         public string PhoneNumber { get; set; }
         public string ScoreOne { get; set; }
         public string ScoreTwo { get; set; }
+        public string City { get; set; }
+        public string Institute { get; set; }
+        public string Technology { get; set; }
+        public string Experience { get; set; }
+        public string Certification { get; set; }
+        public string Skills { get; set; }
+        public string Source { get; set; }
+        public string Reference { get; set; }
+        public string Degree { get; set; }
+        public string Gender { get; set; }
+        public string InterviewID { get; set; }
+        public bool Result { get; set; }
+        public List<ViewAnswerModel> Answers { get; set; }
     }
 }

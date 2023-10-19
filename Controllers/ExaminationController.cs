@@ -34,8 +34,16 @@ namespace TechnorucsWalkInAPI.Controllers
                 return BadRequest("Answer can not be empty");
             }
             var isAnswerSaved = _sharePointService.SaveAnswer(model);
+            if(!isAnswerSaved)
+            {
+                return BadRequest("Error in submitting Answers");
+            }
+            else
+            {
             var response = _sharePointService.ValidateAnswers(model);
             return response;
+
+            }
         }
 
 

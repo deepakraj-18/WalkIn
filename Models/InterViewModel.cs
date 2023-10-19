@@ -16,10 +16,34 @@
 
 
     }
+    public class InterViewResponseModel
+    {
+        public string ID { get; internal set; }
+        public string InterviewId { get; internal set; }
+        public string Date { get; set; }
+        public string Scoreone { get; set; }
+        public string Scoretwo { get; set; }
+        public string PatternCount { get; set; }
+        public Boolean isDeleted { get; internal set; } = false;
+
+
+    }
     public class InterViewUpdateModel
     {
         public string ID { get; set; }
         public DateOnly Date { get; set; }
+        public string Scoreone { get; set; }
+        public string Scoretwo { get; set; }
+        //public string PatternCount { get; set; }
+        //public Boolean isDeleted { get; internal set; } = false;
+
+
+    } 
+    
+    public class InterViewEditResponseModel
+    {
+        public string ID { get; set; }
+        public string Date { get; set; }
         public string Scoreone { get; set; }
         public string Scoretwo { get; set; }
         //public string PatternCount { get; set; }
@@ -38,11 +62,12 @@
     {
         public string InterviewId { get; set; }
     }
-    public class GetInterviewByIdRespoonseModel
+
+    public class GetInterviewByIdResponseModel
     {
         public string InterviewId { get; set; }
         public string ID { get; set; }
-        public DateOnly Date { get; set; }
+        public string Date { get; set; }
         public string Scoreone { get; set; }
         public string Scoretwo { get; set; }
         public Boolean isDeleted { get;  set; }

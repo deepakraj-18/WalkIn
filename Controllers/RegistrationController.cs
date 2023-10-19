@@ -4,6 +4,8 @@ using TechnorucsWalkInAPI.Models;
 using TechnorucsWalkInAPI.Helpers;
 using Microsoft.SharePoint.Client;
 using System;
+using Microsoft.Graph;
+using System.Globalization;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
@@ -64,7 +66,7 @@ namespace TechnorucsWalkInAPI.Controllers
         {
             //Check if any interview today
             DateTime currentDate = DateTime.Today;
-            string formattedDate = currentDate.ToString("MM-dd-yyyy");
+            string formattedDate = currentDate.ToString("dd-MM-yyyy");
             var interview = _sharePointService.GetInterviewByDate(formattedDate);
             if (interview == null || interview.Count == 0)
             {
@@ -79,7 +81,7 @@ namespace TechnorucsWalkInAPI.Controllers
             var interviewId = interview[0]["InterviewId"].ToString();
             model.InterviewDate = formattedDate;
             Random random = new Random();
-            var patternCount = int.Parse(interview[0]["PatternCount"].ToString());
+            var patternCount = int.Parse(interview[0]["PatternCount"]!=null? interview[0]["PatternCount"].ToString():"0");
             model.PatternID = random.Next(1, patternCount+1).ToString();
             model.InterviewID = interviewId;
 
@@ -121,6 +123,8 @@ namespace TechnorucsWalkInAPI.Controllers
                 var response = new RegistrationResponse
                 {
                     Status = "Register successfully",
+                    CanditateEmail=model.Email,
+                    InterviewId=model.InterviewID,
                     Questions = questions
                 };
 

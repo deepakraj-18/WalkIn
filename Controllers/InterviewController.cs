@@ -60,6 +60,7 @@ namespace TechnorucsWalkInAPI.Controllers
                         Scoreone = scoreOne,
                         Scoretwo = scoreTwo
                     });
+
                 }
 
                 return Ok(interviewList);
@@ -83,12 +84,12 @@ namespace TechnorucsWalkInAPI.Controllers
             {
                 return BadRequest("Interview Not Found");
             }
-            List<GetInterviewByIdRespoonseModel> interviews = new()
+            List<GetInterviewByIdResponseModel> interviews = new()
             {
-                new GetInterviewByIdRespoonseModel()
+                new GetInterviewByIdResponseModel()
                 {
                     ID=response[0]["ID"].ToString(),
-                    Date =DateOnly.Parse(response[0]["Title"].ToString()),
+                    Date =response[0]["Title"].ToString(),
                     Scoreone=(string) response[0]["ScoreOne"],
                     Scoretwo=(string) response[0]["ScoreTwo"],
                     InterviewId=(string)response[0]["InterviewId"]
@@ -108,17 +109,17 @@ namespace TechnorucsWalkInAPI.Controllers
         {
             ListItem interviewItems = _sharePointService.CreateInterview(model);
 
-            List<InterViewRegistrationModel> interviews = new()
+            List<InterViewResponseModel> interviews = new()
             {
-                new InterViewRegistrationModel
+                new InterViewResponseModel
                         {
                          ID = interviewItems["InterviewId"].ToString(),
-                         Date = DateOnly.Parse(interviewItems["Title"].ToString()),
+                         Date = interviewItems["Title"].ToString(),
                          Scoreone = interviewItems["ScoreOne"].ToString(),
                          Scoretwo = interviewItems["ScoreTwo"].ToString(),
                 },
             };
-            return interviews;
+            return Ok(interviews);
         }
         #endregion
 
@@ -134,14 +135,14 @@ namespace TechnorucsWalkInAPI.Controllers
         [HttpPost]
         [Route("Edit")]
 
-        public List<InterViewUpdateModel> EditInterview([FromBody] InterViewUpdateModel model)
+        public List<InterViewEditResponseModel> EditInterview([FromBody] InterViewUpdateModel model)
         {
             ListItem editedInterview = _sharePointService.EditInterview(model);
-            List<InterViewUpdateModel> response = new()
+            List<InterViewEditResponseModel> response = new()
             {
-                 new InterViewUpdateModel
+                 new InterViewEditResponseModel
                  {
-                     Date = DateOnly.Parse(editedInterview["Title"].ToString()),
+                     Date = editedInterview["Title"].ToString(),
                      Scoreone = editedInterview["ScoreOne"].ToString(),
                      Scoretwo = editedInterview["ScoreTwo"].ToString()
                  },

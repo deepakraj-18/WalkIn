@@ -9,6 +9,9 @@
     public class ExamAnswerModel
     {
         public string QuestionId { get; set; }
+        public string Question { get; internal set; }
+        public string SubmittedAnswer { get; internal set; }
+
         public string Answer { get; set; }
     }
     public class ExaminationQuestionModel
@@ -26,5 +29,17 @@
         public string OptionsThree { get; set; }
         public string OptionsFour { get; set; }
 
+    }
+    public class ViewAnswerModel
+    {
+        public string QuestionId { get; set;}
+        public string Answer { get; set; }
+        public string Question { get; set; }
+        public string SubmittedAnswer { get; set; }
+    }
+    
+    public class AnswerList
+    {
+        public List<ViewAnswerModel>viewAnswers { get; set; }
     }
 }

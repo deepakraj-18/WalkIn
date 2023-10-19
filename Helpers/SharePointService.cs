@@ -3,6 +3,7 @@ using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Office.SharePoint.Tools;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.News.DataModel;
+using System.Globalization;
 using System.Linq;
 using TechnorucsWalkInAPI.Models;
 
@@ -206,7 +207,7 @@ namespace TechnorucsWalkInAPI.Helpers
         {
             List targetList = _clientContext.Web.Lists.GetByTitle(_interviewList);
             CamlQuery query = new();
-            query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='Title' /><Value Type='Text'>{date}</Value></Eq></Where></Query></View>";
+            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='Title' /><Value Type='Text'>{date}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
             ListItemCollection Lists = targetList.GetItems(query);
             _clientContext.Load(Lists);
             _clientContext.ExecuteQuery();
@@ -220,7 +221,8 @@ namespace TechnorucsWalkInAPI.Helpers
             int interviewCount = GetInterviewCount() + 1;
             string interviewId = "INV" + interviewCount.ToString("D4");
             listItem["InterviewId"] = interviewId;
-            listItem["Title"] = interview.Date;
+            var parsedDate = DateOnly.ParseExact(interview.Date.ToString("dd/MM/yyyy"), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            listItem["Title"] = parsedDate.ToString("dd-MM-yyyy");
             listItem["ScoreOne"] = interview.Scoreone;
             listItem["ScoreTwo"] = interview.Scoretwo;
             listItem["PatternCount"] = interview.PatternCount;
@@ -229,6 +231,7 @@ namespace TechnorucsWalkInAPI.Helpers
             _clientContext.ExecuteQuery();
             return listItem;
         }
+
 
         public dynamic EditInterview(InterViewUpdateModel interview)
         {
@@ -241,7 +244,8 @@ namespace TechnorucsWalkInAPI.Helpers
             if (items.Count == 1)
             {
                 ListItem listItem = items[0];
-                listItem["Title"] = interview.Date.ToString();
+                var parsedDate = DateOnly.ParseExact(interview.Date.ToString("dd-MM-yyyy"), "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                listItem["Title"] = parsedDate.ToString("dd-MM-yyyy");
                 listItem["ScoreOne"] = interview.Scoreone;
                 listItem["ScoreTwo"] = interview.Scoretwo;
                 //listItem["PatternCount"] = interview.PatternCount;
@@ -302,7 +306,7 @@ namespace TechnorucsWalkInAPI.Helpers
             listItem["Gender"] = canditate.Gender;
             listItem["PatternId"] = canditate.PatternID;
             listItem["InterviewDate"] = canditate.InterviewDate;
-            listItem["InterviewId"] = canditate.InterviewID;
+            listItem["InterviewID"] = canditate.InterviewID;
             listItem.Update();
             _clientContext.ExecuteQuery();
             return listItem;
@@ -318,7 +322,7 @@ namespace TechnorucsWalkInAPI.Helpers
             return list;
         }
 
-        public Boolean VerifyCandidate(string email,string interviewDate)
+        public Boolean VerifyCandidate(string email, string interviewDate)
         {
             List targetList = _clientContext.Web.Lists.GetByTitle(_canditateList);
             CamlQuery query = new CamlQuery();
@@ -334,7 +338,8 @@ namespace TechnorucsWalkInAPI.Helpers
             return false;
         }
 
-        public dynamic GetCanditatesByInteviewId(string interviewId,string interviewDate) {
+        public dynamic GetCanditatesByInteviewId(string interviewId, string interviewDate)
+        {
             try
             {
                 List targetList = _clientContext.Web.Lists.GetByTitle(_canditateList);
@@ -345,7 +350,7 @@ namespace TechnorucsWalkInAPI.Helpers
                 _clientContext.ExecuteQuery();
                 return list;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -505,7 +510,12 @@ namespace TechnorucsWalkInAPI.Helpers
         #region
         public string ValidateAnswers(ExaminationModel model)
         {
+            var interview = GetInterviewById(model.InterviewId);
+            var roundOne = Convert.ToInt64
+                (interview[0]["ScoreOne"]);
+            var roundTwo = Convert.ToInt64(interview[0]["ScoreOne"]);
             var score = 0;
+
             foreach (var ans in model.Answer)
             {
                 var answer = GetQuestionById(ans.QuestionId);
@@ -518,7 +528,7 @@ namespace TechnorucsWalkInAPI.Helpers
                     score++;
                 }
             }
-            UpdateScores(model.CanditateEmail, score.ToString());
+            UpdateScores(model.CanditateEmail, score.ToString(),score>=roundOne ? true : false);
 
             return "Score updated successfully";
         }
@@ -527,7 +537,7 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         #region
-        public dynamic UpdateScores(string mail, string score)
+        public dynamic UpdateScores(string mail, string score, Boolean result)
         {
             if (score == null)
                 return null;
@@ -543,6 +553,7 @@ namespace TechnorucsWalkInAPI.Helpers
                 {
                     ListItem listItem = list[0];
                     listItem["ScoreOne"] = score;
+                    listItem["Result"] = result;
                     listItem.Update();
                     _clientContext.ExecuteQuery();
                 }
@@ -596,13 +607,15 @@ namespace TechnorucsWalkInAPI.Helpers
                 foreach (var item in model.Answer)
                 {
                     var question = GetQuestionById(item.QuestionId);
+                    string qw = question[0]["Question"];
+                    string ans = question[0]["Answer"];
                     ListItem questionItem = targetLists.AddItem(listItemCreationInformation);
                     questionItem["Title"] = model.InterviewId + item.QuestionId;
                     questionItem["CanditateId"] = canditate[0]["Email"];
                     questionItem["InterviewId"] = model.InterviewId.ToString();
                     questionItem["QuestionId"] = item.QuestionId.ToString();
-                    questionItem["Answer"] = question[0].Answer.toString();
-                    questionItem["Question"] = question[0].Question.toString();
+                    questionItem["Question"] = qw;
+                    questionItem["Answer"] = ans;
                     questionItem["SubmittedAnswer"] = item.Answer.ToString();
                     questionItem.Update();
                     _clientContext.ExecuteQuery();
@@ -614,6 +627,7 @@ namespace TechnorucsWalkInAPI.Helpers
             }
             catch (Exception ex)
             {
+                return false;
                 throw new Exception(ex.Message);
             }
         }
@@ -645,7 +659,22 @@ namespace TechnorucsWalkInAPI.Helpers
             ListItemCollection Lists = targetLists.GetItems(query);
             _clientContext.Load(Lists);
             _clientContext.ExecuteQuery();
-            if (Lists == null)
+            if (Lists == null && Lists.Count() == 0)
+                return null;
+            return Lists;
+        }
+        #endregion
+
+        #region
+        public dynamic getAnswers(string email, string interviewId)
+        {
+            List targetLists = _clientContext.Web.Lists.GetByTitle(_answerList);
+            CamlQuery query = new();
+            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='CanditateId' /><Value Type='Text'>{email}</Value></Eq><Eq><FieldRef Name='InterviewId' /><Value Type='Text'>{interviewId}</Value></Eq></And></Where></Query></View>";
+            ListItemCollection Lists = targetLists.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            if (Lists == null && Lists.Count() == 0)
                 return null;
             return Lists;
         }

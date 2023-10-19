@@ -45,7 +45,7 @@ namespace TechnorucsWalkInAPI.Controllers
             var isPatternUpdated = _sharePointService.EditInterview(questions.InterviewID, questions.PatternCount);
             if (!isPatternUpdated)
             {
-                return BadRequest("Error in updating pattern count");
+                return BadRequest("Invalid Interview Id");
             }
             if (questions.Questions.Count > 0)
             {
@@ -81,7 +81,7 @@ namespace TechnorucsWalkInAPI.Controllers
         {
             var response = _sharePointService.GetQuestionForInterview(model);
             var interviewResponse = _sharePointService.GetInterviewById(model.InterviewId);
-            string patternCount = interviewResponse[0]["PatternCount"].ToString();
+            string patternCount = interviewResponse?[0]["PatternCount"]!=null? interviewResponse[0]["PatternCount"].ToString():"0";
             List<QuestionModel> questionList = new List<QuestionModel>();
             foreach (var ques in response)
             {
