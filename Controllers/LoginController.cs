@@ -44,9 +44,13 @@ namespace TechnorucsWalkInAPI.Controllers
                     return BadRequest( "Un-Registered User");
                 }
                 ListItem user = users[0];
+                var isDeleted = Boolean.Parse(user["IsDeleted"].ToString());
                 var isApproved = _utilites.VerifyApproved(Boolean.Parse(user["IsApproved"].ToString()));
                 var isValidPassword = _utilites.VerifyPassword(model.Password, user["Password"].ToString());
-
+                if(isDeleted)
+                {
+                    return BadRequest("Deleted User");
+                }
                 if (isValidPassword)
                 {
                     if (isApproved)

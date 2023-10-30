@@ -5,6 +5,7 @@
         public string InterviewId { get; set; }
         public string CanditateEmail {  get; set; }
         public List<ExamAnswerModel> Answer { get; set; }
+        public List<ExaminationRoundTwoAnswerModel> RoundTwoAnswer { get; set; }
     }
     public class ExamAnswerModel
     {
@@ -19,6 +20,18 @@
         public string QuestionId { get; set; }
         public string Question { get; set; }
         public List<OptionsModel> Options { get; set; }
+
+    }
+    public class ExaminationRoundTwoQuestionModel
+    {
+        public string QuestionId { get; set; }
+        public string Question { get; set; }
+
+    }
+    public class ExaminationRoundTwoAnswerModel
+    {
+        public string QuestionId { get; set; }
+        public string Answer { get; set; }
 
     }
 

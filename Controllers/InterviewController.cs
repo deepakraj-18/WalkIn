@@ -9,7 +9,6 @@ using TechnorucsWalkInAPI.Models;
 namespace TechnorucsWalkInAPI.Controllers
 {
     [Authorize(Roles = "Admin")]
-    //[AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class InterviewController : ControllerBase

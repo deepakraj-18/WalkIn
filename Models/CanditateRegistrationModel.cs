@@ -33,6 +33,7 @@
         public string ScoreOne { get; set; }
         public string ScoreTwo { get; set; }
         public Boolean Result { get; set; }
+        public string InterviewDate { get; internal set; }
 
 
     }
@@ -42,6 +43,7 @@
         public string InterviewId { get; set; }
         public string CanditateEmail { get; set; }
         public List<ExaminationQuestionModel> Questions { get; set; }
+        public List<RoundTwoQuestionModel> RoundTwoQuestions { get; set; }
     }
     public class GetCanditateByEmailModel
     {
@@ -75,5 +77,19 @@
         public string InterviewID { get; set; }
         public bool Result { get; set; }
         public List<ViewAnswerModel> Answers { get; set; }
+    }
+
+
+    public class ChangeResultStatusModel
+    {
+        public Boolean Result { get; set; } = false;
+        public string CanditateEmail { get; set; }  
+
+    }
+    public class RoundTwoScoreModel
+    {
+        public int Score { get; set; }
+        public string CanditateEmail { get; set; }  
+
     }
 }

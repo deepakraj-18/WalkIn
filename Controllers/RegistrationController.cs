@@ -76,20 +76,36 @@ namespace TechnorucsWalkInAPI.Controllers
             var isCanditateExists = _sharePointService.VerifyCandidate(model.Email,formattedDate);
             if (isCanditateExists)
             {
-                return Ok("Canditate is Already Registered for today's Interview");
+                return BadRequest("Canditate is Already Registered for today's Interview");
             }
             var interviewId = interview[0]["InterviewId"].ToString();
+            var q = _sharePointService.GetQuestionsForExaminationByID(interviewId);
+            Dictionary<string, int> patternCounts = new Dictionary<string, int>();
+            foreach (var qw in q)
+            {
+                if (patternCounts.ContainsKey(qw["Pattern"]))
+                {
+                    patternCounts[qw["Pattern"]] ++;
+                }
+                else
+                {
+                    patternCounts[qw["Pattern"]] = 1;
+                }
+            }
             model.InterviewDate = formattedDate;
             Random random = new Random();
-            var patternCount = int.Parse(interview[0]["PatternCount"]!=null? interview[0]["PatternCount"].ToString():"0");
-            model.PatternID = random.Next(1, patternCount+1).ToString();
+            //var patternCount = int.Parse(interview[0]["PatternCount"]!=null? interview[0]["PatternCount"].ToString():"0");
+            int randomnumber = random.Next(0, patternCounts.Keys.Count());
+            model.PatternID = patternCounts.Keys.ElementAt(randomnumber).ToString();
             model.InterviewID = interviewId;
 
             var canditate =_sharePointService.RegisterCanditate(model);
             if (canditate != null)
             {
                 var examinationQuestions = _sharePointService.GetQuestionsForExamination(interviewId, model.PatternID);
+                var roundTwoQuestions = _sharePointService.GetRoundTwoQuestionsForExamination(interviewId);
                 List<ExaminationQuestionModel> questions = new();
+                List<RoundTwoQuestionModel> roundTwoQuestionsList = new List<RoundTwoQuestionModel>();
                 foreach (var ques in examinationQuestions)
                 {
                     if (ques["IsDeleted"]==false)
@@ -120,12 +136,26 @@ namespace TechnorucsWalkInAPI.Controllers
 
 
                 }
+                foreach (var qw in roundTwoQuestions)
+                {
+                    string questionNumber = qw["ID"] != null ? qw["ID"].ToString() : "";
+                    string questionId = qw["QuestionId"] != null ? qw["QuestionId"].ToString() : "";
+                    string question = qw["Question"] != null ? qw["Question"].ToString() : "";
+                    roundTwoQuestionsList.Add(new RoundTwoQuestionModel()
+                    {
+                        QuestionId = questionId,
+                        QuestionNumber = questionNumber,
+                        QuestionText = question,
+                    });
+                }
                 var response = new RegistrationResponse
                 {
                     Status = "Register successfully",
                     CanditateEmail=model.Email,
                     InterviewId=model.InterviewID,
-                    Questions = questions
+                    RoundTwoQuestions= roundTwoQuestionsList.ToList(),
+                    Questions = questions,
+
                 };
 
                 return response;

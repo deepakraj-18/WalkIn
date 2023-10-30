@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Office.SharePoint.Tools;
 using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.Discovery;
 using Microsoft.SharePoint.News.DataModel;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +20,7 @@ namespace TechnorucsWalkInAPI.Helpers
         private readonly string _canditateList;
         private readonly string _questionList;
         private readonly string _answerList;
+        private readonly string _roundTwoQuestionList;
         public SharePointService(ClientContext clientContext, IConfiguration configuration)
         {
             _configuration = configuration;
@@ -27,6 +30,7 @@ namespace TechnorucsWalkInAPI.Helpers
             _canditateList = configuration["canditateList"];
             _questionList = configuration["questionList"];
             _answerList = configuration["answerList"];
+            _roundTwoQuestionList = configuration["roundTwoQuestionList"];
 
 
 
@@ -394,6 +398,37 @@ namespace TechnorucsWalkInAPI.Helpers
 
 
         }
+        #endregion 
+
+
+        #region //Add Round Two Question
+        public Boolean AddRoundTwoQuestion(RoundTwoQuestionModel question, string InterviewId)
+        {
+
+            try
+            {
+                List list = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
+                ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
+                ListItem questionItem = list.AddItem(listItemCreationInformation);
+                var questionCount = GetRoundTwoQuestionsCount() + 1;
+                questionItem["Title"] = InterviewId + "QW" + questionCount.ToString("D4");
+                questionItem["InterviewID"] = InterviewId;
+                questionItem["QuestionId"] = "QW" + questionCount.ToString("D4");
+                questionItem["Question"] = question.QuestionText;
+                questionItem["Pattern"] = question.PatternType;
+                questionItem["IsDeleted"] = question.IsDeleted;
+                questionItem.Update();
+                _clientContext.ExecuteQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+                throw new Exception(ex.Message);
+            }
+
+
+        }
         #endregion
 
 
@@ -417,6 +452,14 @@ namespace TechnorucsWalkInAPI.Helpers
                     {
                         AddQuestion(qws, model.InterviewID);
                     }
+                    else if(qws.IsDeleted)
+                    {
+                        var questionItem = list[0];
+                        questionItem["IsDeleted"] = qws.IsDeleted;
+                        questionItem.Update();
+                        _clientContext.ExecuteQuery();
+
+                    }
                     else
                     {
 
@@ -427,7 +470,55 @@ namespace TechnorucsWalkInAPI.Helpers
                         questionItem["OptionThree"] = qws.Options[0].Option3;
                         questionItem["OptionFour"] = qws.Options[0].Option4;
                         questionItem["Answer"] = qws.Answer;
+                        questionItem["IsDeleted"] = qws.IsDeleted;
                         questionItem["HasMultipleChoice"] = qws.HasMultipleChoice;
+                        questionItem.Update();
+                        _clientContext.ExecuteQuery();
+                    }
+                }
+                return "Questions updated successfully";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
+        #endregion
+
+
+
+        #region // Edit Round Two Question
+        /// <summary>
+        /// Edit quesitons of round Two
+        /// </summary>
+        /// <param name="model">EditQuestionModel</param>
+        /// <returns>String</returns>
+        /// <exception cref="Exception"></exception>
+        public dynamic EditRoundTwoQuestion(EditRoundTwoQuestionModel model)
+        {
+
+            try
+            {
+                List roundTwoTargetList = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
+
+                foreach (var qws in model.RoundTwoQuestions)
+                {
+                    CamlQuery query = new CamlQuery();
+                    query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{qws.QuestionNumber}</Value></Eq></Where></Query></View>";
+                    ListItemCollection list = roundTwoTargetList.GetItems(query);
+                    _clientContext.Load(list);
+                    _clientContext.ExecuteQuery();
+                    if (list.Count == 0)
+                    {
+                        AddRoundTwoQuestion(qws, model.InterviewID);
+                    }
+                    else
+                    {
+
+                        var questionItem = list[0];
+                        questionItem["Question"] = qws.QuestionText;
                         questionItem["IsDeleted"] = qws.IsDeleted;
                         questionItem.Update();
                         _clientContext.ExecuteQuery();
@@ -440,11 +531,6 @@ namespace TechnorucsWalkInAPI.Helpers
                 throw new Exception(ex.Message);
             }
         }
-
-        private dynamic Ok(string v)
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
 
@@ -454,7 +540,44 @@ namespace TechnorucsWalkInAPI.Helpers
             {
                 List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
                 CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.InterviewId}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
+                _clientContext.ExecuteQuery();
+                return list;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public ListItemCollection GetRoundTwoQuestions(GetInterviewQuestionModel model)
+        {
+            try
+            {
+                List targetList = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
+                CamlQuery query = new CamlQuery();
                 query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{model.InterviewId}</Value></Eq></Where></Query></View>";
+                ListItemCollection list = targetList.GetItems(query);
+                _clientContext.Load(list);
+                _clientContext.ExecuteQuery();
+                return list;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        #region
+        public dynamic GetQuestionById(string QuestionID)
+        {
+            try
+            {
+                List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{QuestionID}</Value></Eq></Where></Query></View>";
                 ListItemCollection list = targetList.GetItems(query);
                 _clientContext.Load(list);
                 _clientContext.ExecuteQuery();
@@ -468,11 +591,11 @@ namespace TechnorucsWalkInAPI.Helpers
         #endregion
 
         #region
-        public dynamic GetQuestionById(string QuestionID)
+        public dynamic GetRoundTwoQuestionById(string QuestionID)
         {
             try
             {
-                List targetList = _clientContext.Web.Lists.GetByTitle(_questionList);
+                List targetList = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
                 CamlQuery query = new CamlQuery();
                 query.ViewXml = $@"<View><Query><Where><Eq><FieldRef Name='QuestionId' /><Value Type='Text'>{QuestionID}</Value></Eq></Where></Query></View>";
                 ListItemCollection list = targetList.GetItems(query);
@@ -501,6 +624,19 @@ namespace TechnorucsWalkInAPI.Helpers
                 ();
         }
         #endregion
+        #region
+        public int GetRoundTwoQuestionsCount()
+        {
+            List interviewList = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
+            CamlQuery query = new CamlQuery();
+            query.ViewXml = @"<View/>";
+            ListItemCollection Lists = interviewList.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists.Count
+                ();
+        }
+        #endregion
 
 
 
@@ -511,26 +647,37 @@ namespace TechnorucsWalkInAPI.Helpers
         public string ValidateAnswers(ExaminationModel model)
         {
             var interview = GetInterviewById(model.InterviewId);
+            if (interview == null)
+            {
+                return ("Interview Id is Invalid");
+            }
             var roundOne = Convert.ToInt64
                 (interview[0]["ScoreOne"]);
             var roundTwo = Convert.ToInt64(interview[0]["ScoreOne"]);
             var score = 0;
-
-            foreach (var ans in model.Answer)
+            if(model.Answer!=null&&model.Answer.Count()>0)
             {
-                var answer = GetQuestionById(ans.QuestionId);
-                if (answer == null)
+                foreach (var ans in model.Answer)
                 {
-                    return ("Invalid QuestionID");
+                    var answer = GetQuestionById(ans.QuestionId);
+                    if (answer == null)
+                    {
+                        return ("Invalid QuestionID");
+                    }
+                    if (ans.Answer == answer[0]["Answer"])
+                    {
+                        score++;
+                    }
                 }
-                if (ans.Answer == answer[0]["Answer"])
-                {
-                    score++;
-                }
-            }
-            UpdateScores(model.CanditateEmail, score.ToString(),score>=roundOne ? true : false);
-
+            UpdateScores(model.CanditateEmail, score.ToString(), score >= roundOne ? true : false);
             return "Score updated successfully";
+            }
+            else
+            {
+                return "Answers are empty and score is updated";
+            }
+            
+
         }
         #endregion
 
@@ -568,6 +715,98 @@ namespace TechnorucsWalkInAPI.Helpers
         }
         #endregion
 
+        #region
+        /// <summary>
+        /// Change the Result Status of the Canditate by Admin
+        /// </summary>
+        /// <param name="model.Result">Result - Boolean</param>
+        /// <param name="model.CanditateEmail">CanditateEmail</param>
+        /// <returns>Canditate Details</returns>
+        /// <exception cref="Exception"></exception>
+        public ListItemCollection ChangeResultStatus(ChangeResultStatusModel model)
+        {
+            try
+            {
+                List targetLists = _clientContext.Web.Lists.GetByTitle(_canditateList);
+                CamlQuery query = new();
+                query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='Email' /><Value Type='Text'>{model.CanditateEmail}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+                ListItemCollection Lists = targetLists.GetItems(query);
+                _clientContext.Load(Lists);
+                _clientContext.ExecuteQuery();
+                if (Lists.Count > 0)
+                {
+                    ListItem listItem = Lists[0];
+                    listItem["Result"] = model.Result;
+                    listItem.Update();
+                    _clientContext.ExecuteQuery();
+                    return Lists;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+
+
+
+        #region
+        /// <summary>
+        /// Submit scores for round two
+        /// </summary>
+        /// <param name="model.Score">Score - Int</param>
+        /// <param name="model.CanditateEmail">CanditateEmail</param>
+        /// <returns>Canditate Details</returns>
+        /// <exception cref="Exception"></exception>
+        public ListItemCollection UpdateRoundTwoScore(RoundTwoScoreModel model)
+        {
+            try
+            {
+                List targetLists = _clientContext.Web.Lists.GetByTitle(_canditateList);
+                CamlQuery query = new();
+                query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='Email' /><Value Type='Text'>{model.CanditateEmail}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+                ListItemCollection Lists = targetLists.GetItems(query);
+                _clientContext.Load(Lists);
+                _clientContext.ExecuteQuery();
+                if (Lists.Count > 0)
+                {
+                    ListItem listItem = Lists[0];
+                    listItem["ScoreTwo"] = model.Score.ToString();
+                    listItem.Update();
+                    _clientContext.ExecuteQuery();
+                    var response = GetInterviewById(listItem["InterviewID"].ToString());
+                    if (response.Count != 0)
+                    {
+                        var roundTwoEligiblityScore = response[0]["ScoreTwo"].ToString();
+                        var status = Convert.ToInt32(roundTwoEligiblityScore) <= model.Score ? true : false;
+                        var result = new ChangeResultStatusModel
+                        {
+                            CanditateEmail = listItem["Email"].ToString(),
+                            Result = status,
+                        };
+                        ChangeResultStatus(result);
+                    }
+                    return Lists;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+
         public dynamic GetQuestionsForExamination(string InterviewID, string patternId)
         {
             List targetLists = _clientContext.Web.Lists.GetByTitle(_questionList);
@@ -579,6 +818,31 @@ namespace TechnorucsWalkInAPI.Helpers
             return Lists;
 
         }
+        public dynamic GetQuestionsForExaminationByID(string InterviewID)
+        {
+            List targetLists = _clientContext.Web.Lists.GetByTitle(_questionList);
+            CamlQuery query = new();
+            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{InterviewID}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+            ListItemCollection Lists = targetLists.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists;
+
+        }
+
+        #region
+        public dynamic GetRoundTwoQuestionsForExamination(string InterviewID)
+        {
+            List targetLists = _clientContext.Web.Lists.GetByTitle(_roundTwoQuestionList);
+            CamlQuery query = new();
+            query.ViewXml = $@"<View><Query><Where><And><Eq><FieldRef Name='InterviewID' /><Value Type='Text'>{InterviewID}</Value></Eq><Eq><FieldRef Name='IsDeleted' /><Value Type='Boolean'>0</Value></Eq></And></Where></Query></View>";
+            ListItemCollection Lists = targetLists.GetItems(query);
+            _clientContext.Load(Lists);
+            _clientContext.ExecuteQuery();
+            return Lists;
+
+        }
+        #endregion
 
 
 
@@ -604,22 +868,82 @@ namespace TechnorucsWalkInAPI.Helpers
 
                 List targetLists = _clientContext.Web.Lists.GetByTitle(_answerList);
                 ListItemCreationInformation listItemCreationInformation = new ListItemCreationInformation();
-                foreach (var item in model.Answer)
+                if (model.Answer != null && model.Answer.Count > 0)
                 {
-                    var question = GetQuestionById(item.QuestionId);
-                    string qw = question[0]["Question"];
-                    string ans = question[0]["Answer"];
-                    ListItem questionItem = targetLists.AddItem(listItemCreationInformation);
-                    questionItem["Title"] = model.InterviewId + item.QuestionId;
-                    questionItem["CanditateId"] = canditate[0]["Email"];
-                    questionItem["InterviewId"] = model.InterviewId.ToString();
-                    questionItem["QuestionId"] = item.QuestionId.ToString();
-                    questionItem["Question"] = qw;
-                    questionItem["Answer"] = ans;
-                    questionItem["SubmittedAnswer"] = item.Answer.ToString();
-                    questionItem.Update();
-                    _clientContext.ExecuteQuery();
 
+                    foreach (var item in model.Answer)
+                    {
+                        var question = GetQuestionById(item.QuestionId);
+                        string qw = question[0]["Question"];
+                        string ans = "";
+                        var answerValue = question[0]["Answer"];
+                        switch (answerValue)
+                            {
+                                case "1":
+                                    ans = question[0]["OptionOne"]?.ToString();
+                                    break;
+                                case "2":
+                                    ans = question[0]["OptionTwo"]?.ToString();
+                                    break;
+                                case "3":
+                                    ans = question[0]["OptionThree"]?.ToString();
+                                    break;
+                                case "4":
+                                    ans = question[0]["OptionFour"]?.ToString();
+                                    break;
+
+                            }
+                        var canditateAnswer = "";
+                        var submittedValue = item.Answer.ToString();
+
+                        switch (submittedValue)
+                        {
+                            case "1":
+                                canditateAnswer = question[0]["OptionOne"]?.ToString();
+                                break;
+                            case "2":
+                                canditateAnswer = question[0]["OptionTwo"]?.ToString();
+                                break;
+                            case "3":
+                                canditateAnswer = question[0]["OptionThree"]?.ToString();
+                                break;
+                            case "4":
+                                canditateAnswer = question[0]["OptionFour"]?.ToString();
+                                break;
+
+                        }
+
+                        ListItem questionItem = targetLists.AddItem(listItemCreationInformation);
+                        questionItem["Title"] = model.InterviewId + item.QuestionId;
+                        questionItem["CanditateId"] = canditate[0]["Email"];
+                        questionItem["InterviewId"] = model.InterviewId.ToString();
+                        questionItem["QuestionId"] = item.QuestionId.ToString();
+                        questionItem["Question"] = qw;
+                        questionItem["Answer"] = ans;
+                        questionItem["SubmittedAnswer"] = canditateAnswer;
+                        questionItem.Update();
+                        _clientContext.ExecuteQuery();
+
+                    }
+                }
+                if (model.RoundTwoAnswer != null && model.RoundTwoAnswer.Count > 0)
+                {
+
+                    foreach (var item in model.RoundTwoAnswer)
+                    {
+                        var question = GetRoundTwoQuestionById(item.QuestionId);
+                        string qw = question[0]["Question"];
+                        ListItem questionItem = targetLists.AddItem(listItemCreationInformation);
+                        questionItem["Title"] = model.InterviewId + item.QuestionId;
+                        questionItem["CanditateId"] = canditate[0]["Email"];
+                        questionItem["InterviewId"] = model.InterviewId.ToString();
+                        questionItem["QuestionId"] = item.QuestionId.ToString();
+                        questionItem["Question"] = qw;
+                        questionItem["SubmittedAnswer"] = item.Answer.ToString();
+                        questionItem.Update();
+                        _clientContext.ExecuteQuery();
+
+                    }
                 }
 
                 return true;
@@ -631,6 +955,8 @@ namespace TechnorucsWalkInAPI.Helpers
                 throw new Exception(ex.Message);
             }
         }
+        #endregion
+
         #endregion
 
 
@@ -664,6 +990,8 @@ namespace TechnorucsWalkInAPI.Helpers
             return Lists;
         }
         #endregion
+
+
 
         #region
         public dynamic getAnswers(string email, string interviewId)

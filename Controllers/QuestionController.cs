@@ -9,7 +9,6 @@ using TechnorucsWalkInAPI.Models;
 namespace TechnorucsWalkInAPI.Controllers
 {
     [Authorize(Roles = "Admin")]
-    //[AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class QuestionController : ControllerBase
@@ -34,7 +33,7 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic AddQuestion([FromBody] QuestionsModel questions)
         {
             var result = false;
-            if(questions.InterviewID == null)
+            if (questions.InterviewID == null)
             {
                 return BadRequest("Interview Id is Mandatory");
             }
@@ -54,9 +53,11 @@ namespace TechnorucsWalkInAPI.Controllers
                     result = _sharePointService.AddQuestion(question, questions.InterviewID);
                     if (!result)
                     {
-                        return BadRequest("Failed");
+                        return BadRequest("Adding Question Failed");
                     }
                 }
+
+
                 return Ok("Questions Added Succesfully");
             }
             else
@@ -67,6 +68,38 @@ namespace TechnorucsWalkInAPI.Controllers
         }
         #endregion
 
+
+        #region
+        [HttpPost]
+        [Route("AddQuestionsForRoundTwo")]
+        public dynamic AddQuestionsForROundTwo([FromBody] RoundTwoQuestionsModel questions)
+        {
+            var isRoundTwoQuestionsAdded = false;
+            if (questions.InterviewID == null)
+            {
+                return BadRequest("Interview Id is Mandatory");
+            }
+            if (questions.RoundTwoQuestions.Count > 0)
+            {
+
+                foreach (var question in questions.RoundTwoQuestions)
+                {
+                    isRoundTwoQuestionsAdded = _sharePointService.AddRoundTwoQuestion(question, questions.InterviewID);
+                    if (!isRoundTwoQuestionsAdded)
+                    {
+                        return BadRequest("Adding Question for Round One Failed");
+
+                    }
+                }
+
+                return Ok("Questions Added Succesfully");
+            }
+            else
+            {
+                return Ok("Please Add questions to the Interview");
+            }
+        }
+        #endregion
 
 
         /// <summary>
@@ -80,14 +113,16 @@ namespace TechnorucsWalkInAPI.Controllers
         public dynamic GetQuestionForInterview([FromBody] GetInterviewQuestionModel model)
         {
             var response = _sharePointService.GetQuestionForInterview(model);
+            var roundTwoQuestions = _sharePointService.GetRoundTwoQuestions(model);
             var interviewResponse = _sharePointService.GetInterviewById(model.InterviewId);
-            string patternCount = interviewResponse?[0]["PatternCount"]!=null? interviewResponse[0]["PatternCount"].ToString():"0";
+            string patternCount = interviewResponse?[0]["PatternCount"] != null ? interviewResponse[0]["PatternCount"].ToString() : "0";
             List<QuestionModel> questionList = new List<QuestionModel>();
+            List<RoundTwoQuestionModel> roundTwoQuestionsList = new List<RoundTwoQuestionModel>();
             foreach (var ques in response)
             {
                 List<OptionModel> options = new List<OptionModel>();
                 string id = ques["ID"] != null ? ques["ID"].ToString() : "";
-                string  num= ques["QuestionId"] != null ? ques["QuestionId"].ToString() : "";
+                string num = ques["QuestionId"] != null ? ques["QuestionId"].ToString() : "";
                 string question = ques["Question"] != null ? ques["Question"].ToString() : "";
                 string patternType = ques["Pattern"] != null ? ques["Pattern"].ToString() : "";
                 string answer = ques["Answer"] != null ? ques["Answer"].ToString() : "";
@@ -108,18 +143,32 @@ namespace TechnorucsWalkInAPI.Controllers
                 questionList.Add(new QuestionModel()
                 {
                     QuestionNumber = id,
-                    QuestionId=num,
+                    QuestionId = num,
                     QuestionText = question,
                     Answer = answer,
                     Options = options.ToList(),
                     PatternType = patternType
                 });
             }
-            List<QuestionsModel> interviewModels = new List<QuestionsModel>();
-            interviewModels.Add(new QuestionsModel()
+            foreach(var qw in roundTwoQuestions)
+            {
+                string questionNumber = qw["ID"] != null ? qw["ID"].ToString() : "";
+                string questionId = qw["QuestionId"] != null ? qw["QuestionId"].ToString() : "";
+                string question = qw["Question"] != null ? qw["Question"].ToString() : "";
+                roundTwoQuestionsList.Add(new RoundTwoQuestionModel()
+                {
+                    QuestionId = questionId,
+                    QuestionNumber = questionNumber,
+                    QuestionText = question,
+                });
+            }
+
+            List<GetQuestionsModel> interviewModels = new List<GetQuestionsModel>();
+            interviewModels.Add(new GetQuestionsModel()
             {
                 InterviewID = model.InterviewId,
                 Questions = questionList.ToList(),
+                RoundTwoQuestions= roundTwoQuestionsList.ToList(),
                 PatternCount = patternCount
             });
 
@@ -137,6 +186,20 @@ namespace TechnorucsWalkInAPI.Controllers
                 return BadRequest("Interview Id is mandatory");
             }
             var response = _sharePointService.editQuestion(model);
+            return Ok(response);
+        }
+        #endregion 
+        
+         #region //Edit  Round Two Question
+        [HttpPost]
+        [Route("EditRoundTwoQuestion")]
+        public dynamic EditRoundTwoQuestion([FromBody] EditRoundTwoQuestionModel model)
+        {
+            if (model.InterviewID == null)
+            {
+                return BadRequest("Interview Id is mandatory");
+            }
+            var response = _sharePointService.EditRoundTwoQuestion(model);
             return Ok(response);
         }
         #endregion

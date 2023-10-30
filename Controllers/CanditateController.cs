@@ -7,8 +7,7 @@ using TechnorucsWalkInAPI.Models;
 
 namespace TechnorucsWalkInAPI.Controllers
 {
-    //[Authorize(Roles = "Admin")]
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class CanditateController : ControllerBase
@@ -37,6 +36,7 @@ namespace TechnorucsWalkInAPI.Controllers
                 string scoreOne = c["ScoreOne"].ToString() ?? "0";
                 string scoreTwo = c["ScoreTwo"].ToString() ?? "0";
                 var result = c["Result"];
+                var interviewDate = c["InterviewDate"].ToString();
 
                 canditates.Add(new ViewCanditateModel()
                 {
@@ -46,7 +46,8 @@ namespace TechnorucsWalkInAPI.Controllers
                     PhoneNumber = phoneNumber,
                     ScoreOne = scoreOne,
                     ScoreTwo = scoreTwo,
-                    Result=Convert.ToBoolean(result)
+                    Result=Convert.ToBoolean(result),
+                    InterviewDate=interviewDate
                 });
             }
 
@@ -187,6 +188,44 @@ namespace TechnorucsWalkInAPI.Controllers
                 return BadRequest("Canditate doesn't exists");
             }
 
+        }
+        #endregion
+
+
+        #region
+        [HttpPost]
+        [Route("ChangeResultStatus")]
+        public dynamic ChangeResultStatus([FromBody] ChangeResultStatusModel model )
+        {
+            if (model == null || model.CanditateEmail == null || model.Result == null)
+            {
+                return BadRequest("Please submit all the mandatory fields");
+            }
+            var response =_sharePointService.ChangeResultStatus(model);
+            if (response != null)
+            {
+                return Ok("Canditate results changed succesfully");
+            }
+            return BadRequest("Error : Canditate Not Found");
+        }
+        #endregion
+        
+        
+        #region
+        [HttpPost]
+        [Route("SubmitRoundScores")]
+        public dynamic SubmitRoundScores([FromBody] RoundTwoScoreModel model )
+        {
+            if (model == null || model.CanditateEmail == null || model.Score == null)
+            {
+                return BadRequest("Please submit all the mandatory fields");
+            }
+            var response =_sharePointService.UpdateRoundTwoScore(model);
+            if (response != null)
+            {
+                return Ok("Canditate Round Two Score Updated succesfully");
+            }
+            return BadRequest("Error : Canditate Not Found");
         }
         #endregion
 
